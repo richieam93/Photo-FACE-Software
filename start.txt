@@ -1,4 +1,4 @@
-cd :\Users\Richi\Desktop\Photo Tony software\Fotosoftware-getrennt
+cd 
 python -m venv venv
 
 venv\Scripts\activate
