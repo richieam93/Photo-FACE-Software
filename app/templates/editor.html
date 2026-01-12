@@ -1,0 +1,605 @@
+{% extends "base.html" %}
+
+{% block title %}Zuschnitt-Editor - Photo Software{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<style>
+    /* ========================================
+       EDITOR STYLES
+       ======================================== */
+    
+    .editor-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    
+    .editor-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .editor-header h1 {
+        font-size: 32px;
+        color: {{ color | default('#4ecdc4') }};
+        margin-bottom: 10px;
+    }
+    
+    .editor-header .subtitle {
+        color: #888888;
+    }
+    
+    /* Saved Settings */
+    .saved-info {
+        background: rgba(78, 205, 196, 0.15);
+        border: 1px solid #4ecdc4;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .saved-info h4 {
+        color: #4ecdc4;
+        margin-bottom: 15px;
+    }
+    
+    .saved-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+    }
+    
+    .saved-item {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .saved-item .label {
+        font-size: 11px;
+        color: #4ecdc4;
+        margin-bottom: 4px;
+    }
+    
+    .saved-item .value {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    /* Upload Box */
+    .upload-box {
+        background: rgba(255, 255, 255, 0.08);
+        border: 3px dashed {{ color | default('#4ecdc4') }};
+        border-radius: 20px;
+        padding: 60px 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 25px;
+    }
+    
+    .upload-box:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: #ffffff;
+    }
+    
+    .upload-box.dragover {
+        background: rgba(78, 205, 196, 0.15);
+        border-color: #4ecdc4;
+    }
+    
+    .upload-box .icon {
+        font-size: 60px;
+        margin-bottom: 15px;
+    }
+    
+    .upload-box h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+    
+    .upload-box p {
+        color: #888888;
+    }
+    
+    .upload-box input {
+        display: none;
+    }
+    
+    /* Cropper Box */
+    .cropper-box {
+        display: none;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .cropper-box.active {
+        display: block;
+    }
+    
+    .cropper-box img {
+        max-width: 100%;
+        display: block;
+    }
+    
+    /* Values Display */
+    .values-box {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 25px;
+    }
+    
+    .values-box h3 {
+        color: {{ color | default('#4ecdc4') }};
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .value-item {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 20px 15px;
+        border-radius: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .value-item:hover {
+        background: rgba(0, 0, 0, 0.4);
+    }
+    
+    .value-label {
+        font-size: 12px;
+        color: #888888;
+        margin-bottom: 5px;
+    }
+    
+    .value-number {
+        font-size: 26px;
+        font-weight: 700;
+        color: {{ color | default('#4ecdc4') }};
+    }
+    
+    .value-unit {
+        font-size: 12px;
+        color: #666666;
+        margin-top: 3px;
+    }
+    
+    /* Actions */
+    .editor-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    /* Help Text */
+    .help-section {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 25px;
+    }
+    
+    .help-section h4 {
+        color: {{ color | default('#4ecdc4') }};
+        margin-bottom: 15px;
+    }
+    
+    .help-section ul {
+        margin-left: 20px;
+        color: #aaaaaa;
+    }
+    
+    .help-section li {
+        margin-bottom: 8px;
+    }
+    
+    /* Cropper.js Overrides */
+    .cropper-container {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 0;
+    }
+    
+    .cropper-line {
+        background-color: {{ color | default('#4ecdc4') }};
+    }
+    
+    .cropper-point {
+        background-color: {{ color | default('#4ecdc4') }};
+        width: 10px;
+        height: 10px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .values-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .editor-actions {
+            flex-direction: column;
+        }
+        
+        .editor-actions .btn {
+            width: 100%;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .values-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .saved-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    
+    <!-- Header -->
+    <div class="editor-header">
+        <h1>✂️ Zuschnitt-Editor</h1>
+        <p class="subtitle">Station: {{ station_name | default('Standard') }}</p>
+    </div>
+    
+    <!-- Gespeicherte Einstellungen -->
+    <div class="saved-info" id="saved-info" style="display: none;">
+        <h4>💾 Gespeicherte Einstellungen</h4>
+        <p style="color: #888; margin-bottom: 15px; font-size: 14px;">
+            Diese Werte werden automatisch auf neue Bilder angewendet
+        </p>
+        <div class="saved-grid" id="saved-grid"></div>
+    </div>
+    
+    <!-- Upload Box -->
+    <div class="upload-box" id="upload-box">
+        <div class="icon">📁</div>
+        <h3>Bild zum Bearbeiten hochladen</h3>
+        <p>Klicke hier oder ziehe ein Bild in diesen Bereich</p>
+        <input type="file" id="file-input" accept="image/*">
+    </div>
+    
+    <!-- Cropper Box -->
+    <div class="cropper-box" id="cropper-box">
+        <img id="crop-image" src="">
+    </div>
+    
+    <!-- Values Display -->
+    <div class="values-box">
+        <h3>📊 Aktuelle Zuschnitt-Werte</h3>
+        
+        <div class="values-grid">
+            <div class="value-item">
+                <div class="value-label">X Position</div>
+                <div class="value-number" id="val-x">-</div>
+                <div class="value-unit">%</div>
+            </div>
+            <div class="value-item">
+                <div class="value-label">Y Position</div>
+                <div class="value-number" id="val-y">-</div>
+                <div class="value-unit">%</div>
+            </div>
+            <div class="value-item">
+                <div class="value-label">Breite</div>
+                <div class="value-number" id="val-w">-</div>
+                <div class="value-unit">%</div>
+            </div>
+            <div class="value-item">
+                <div class="value-label">Höhe</div>
+                <div class="value-number" id="val-h">-</div>
+                <div class="value-unit">%</div>
+            </div>
+            <div class="value-item">
+                <div class="value-label">Zoom</div>
+                <div class="value-number" id="val-z">-</div>
+                <div class="value-unit">x</div>
+            </div>
+        </div>
+        
+        <div class="editor-actions">
+            <button class="btn btn-primary btn-lg" id="save-btn" onclick="saveSettings()" disabled>
+                💾 Einstellungen speichern
+            </button>
+            <button class="btn btn-secondary" id="reset-btn" onclick="resetCrop()" disabled>
+                🔄 Zurücksetzen
+            </button>
+            <button class="btn btn-danger" onclick="deleteSettings()">
+                🗑️ Löschen
+            </button>
+        </div>
+        
+        <div class="help-section">
+            <h4>💡 Tipps</h4>
+            <ul>
+                <li><strong>Ziehen:</strong> Verschiebe den Zuschnittbereich</li>
+                <li><strong>Ecken ziehen:</strong> Ändere die Größe</li>
+                <li><strong>Mausrad:</strong> Zoomen</li>
+                <li><strong>Speichern:</strong> Werte werden auf alle neuen Bilder angewendet</li>
+            </ul>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    // ========================================
+    // VARIABLEN
+    // ========================================
+    
+    const station = '{{ station }}';
+    let cropper = null;
+    let savedSettings = null;
+    
+    // ========================================
+    // INITIALISIERUNG
+    // ========================================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSavedSettings();
+        setupUpload();
+    });
+    
+    // ========================================
+    // GESPEICHERTE EINSTELLUNGEN
+    // ========================================
+    
+    async function loadSavedSettings() {
+        try {
+            const response = await api('/admin/api/config');
+
+            if (response.success && response.config && response.config.crop && response.config.crop.enabled) {
+                const crop = response.config.crop;
+                savedSettings = {
+                    enabled: crop.enabled,
+                    xPercent: crop.x_percent || 0,
+                    yPercent: crop.y_percent || 0,
+                    widthPercent: crop.width_percent || 100,
+                    heightPercent: crop.height_percent || 100
+                };
+                displaySavedSettings();
+            }
+        } catch (error) {
+            console.log('Keine gespeicherten Einstellungen');
+        }
+    }
+    
+    function displaySavedSettings() {
+        if (!savedSettings) return;
+        
+        const infoEl = document.getElementById('saved-info');
+        const gridEl = document.getElementById('saved-grid');
+        
+        gridEl.innerHTML = `
+            <div class="saved-item">
+                <div class="label">X</div>
+                <div class="value">${(savedSettings.xPercent || 0).toFixed(1)}%</div>
+            </div>
+            <div class="saved-item">
+                <div class="label">Y</div>
+                <div class="value">${(savedSettings.yPercent || 0).toFixed(1)}%</div>
+            </div>
+            <div class="saved-item">
+                <div class="label">Breite</div>
+                <div class="value">${(savedSettings.widthPercent || 100).toFixed(1)}%</div>
+            </div>
+            <div class="saved-item">
+                <div class="label">Höhe</div>
+                <div class="value">${(savedSettings.heightPercent || 100).toFixed(1)}%</div>
+            </div>
+        `;
+        
+        infoEl.style.display = 'block';
+    }
+    
+    // ========================================
+    // UPLOAD
+    // ========================================
+    
+    function setupUpload() {
+        const uploadBox = document.getElementById('upload-box');
+        const fileInput = document.getElementById('file-input');
+        
+        uploadBox.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) loadImage(e.target.files[0]);
+        });
+        
+        // Drag & Drop
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+        
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('dragover');
+        });
+        
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                loadImage(file);
+            }
+        });
+    }
+    
+    function loadImage(file) {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            const img = document.getElementById('crop-image');
+            img.src = e.target.result;
+            
+            document.getElementById('cropper-box').classList.add('active');
+            
+            if (cropper) cropper.destroy();
+            
+            cropper = new Cropper(img, {
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 1,
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: true,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                
+                ready: () => {
+                    document.getElementById('save-btn').disabled = false;
+                    document.getElementById('reset-btn').disabled = false;
+                    updateValues();
+                    
+                    if (savedSettings) {
+                        applySettings();
+                    }
+                },
+                
+                crop: () => updateValues(),
+                zoom: () => updateValues()
+            });
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    // ========================================
+    // WERTE AKTUALISIEREN
+    // ========================================
+    
+    function updateValues() {
+        if (!cropper) return;
+        
+        const imageData = cropper.getImageData();
+        const cropData = cropper.getData();
+        const canvasData = cropper.getCanvasData();
+        
+        const xPercent = (cropData.x / imageData.naturalWidth) * 100;
+        const yPercent = (cropData.y / imageData.naturalHeight) * 100;
+        const wPercent = (cropData.width / imageData.naturalWidth) * 100;
+        const hPercent = (cropData.height / imageData.naturalHeight) * 100;
+        const zoom = canvasData.width / imageData.naturalWidth;
+        
+        document.getElementById('val-x').textContent = xPercent.toFixed(1);
+        document.getElementById('val-y').textContent = yPercent.toFixed(1);
+        document.getElementById('val-w').textContent = wPercent.toFixed(1);
+        document.getElementById('val-h').textContent = hPercent.toFixed(1);
+        document.getElementById('val-z').textContent = zoom.toFixed(2);
+    }
+    
+    function applySettings() {
+        if (!cropper || !savedSettings) return;
+        
+        const imageData = cropper.getImageData();
+        
+        const x = (savedSettings.xPercent / 100) * imageData.naturalWidth;
+        const y = (savedSettings.yPercent / 100) * imageData.naturalHeight;
+        const width = (savedSettings.widthPercent / 100) * imageData.naturalWidth;
+        const height = (savedSettings.heightPercent / 100) * imageData.naturalHeight;
+        
+        setTimeout(() => {
+            cropper.setData({ x, y, width, height });
+            updateValues();
+        }, 100);
+    }
+    
+    // ========================================
+    // SPEICHERN / LÖSCHEN
+    // ========================================
+    
+    async function saveSettings() {
+        if (!cropper) return;
+
+        const imageData = cropper.getImageData();
+        const cropData = cropper.getData();
+
+        const configUpdate = {
+            "crop.enabled": true,
+            "crop.x_percent": (cropData.x / imageData.naturalWidth) * 100,
+            "crop.y_percent": (cropData.y / imageData.naturalHeight) * 100,
+            "crop.width_percent": (cropData.width / imageData.naturalWidth) * 100,
+            "crop.height_percent": (cropData.height / imageData.naturalHeight) * 100
+        };
+
+        try {
+            const response = await api('/admin/api/config', {
+                method: 'POST',
+                body: JSON.stringify(configUpdate)
+            });
+
+            if (response.success) {
+                savedSettings = {
+                    enabled: true,
+                    xPercent: configUpdate["crop.x_percent"],
+                    yPercent: configUpdate["crop.y_percent"],
+                    widthPercent: configUpdate["crop.width_percent"],
+                    heightPercent: configUpdate["crop.height_percent"]
+                };
+                displaySavedSettings();
+                showToast('✅ Einstellungen gespeichert!', 'success');
+            } else {
+                showToast('❌ Speichern fehlgeschlagen', 'error');
+            }
+        } catch (error) {
+            showToast('❌ Fehler beim Speichern', 'error');
+        }
+    }
+    
+    function resetCrop() {
+        if (cropper) {
+            cropper.reset();
+            updateValues();
+        }
+    }
+    
+    async function deleteSettings() {
+        if (!confirm('Einstellungen wirklich löschen?')) return;
+
+        try {
+            const response = await api('/admin/api/config', {
+                method: 'POST',
+                body: JSON.stringify({
+                    "crop.enabled": false
+                })
+            });
+
+            if (response.success) {
+                savedSettings = null;
+                document.getElementById('saved-info').style.display = 'none';
+                showToast('🗑️ Einstellungen gelöscht', 'success');
+            } else {
+                showToast('❌ Löschen fehlgeschlagen', 'error');
+            }
+        } catch (error) {
+            showToast('❌ Fehler beim Löschen', 'error');
+        }
+    }
+</script>
+{% endblock %}

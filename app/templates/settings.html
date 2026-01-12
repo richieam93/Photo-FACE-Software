@@ -1,0 +1,1029 @@
+{% extends "base.html" %}
+
+{% block title %}{{ settings_type }} Einstellungen - Photo Software{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========================================
+       SETTINGS STYLES
+       ======================================== */
+    
+    .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 20px;
+    }
+    
+    /* Header */
+    .settings-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .settings-header .icon {
+        font-size: 60px;
+        margin-bottom: 15px;
+    }
+    
+    .settings-header h1 {
+        font-size: 32px;
+        color: #ffffff;
+        margin-bottom: 10px;
+    }
+    
+    .settings-header .subtitle {
+        color: #888888;
+        font-size: 16px;
+    }
+    
+    /* Navigation */
+    .settings-nav {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .settings-nav a {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        color: #ffffff;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .settings-nav a:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .settings-nav a.active {
+        background: #4ecdc4;
+        color: #1a1a2e;
+    }
+    
+    /* Status Message */
+    .status-message {
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        display: none;
+        text-align: center;
+    }
+    
+    .status-message.success {
+        background: rgba(78, 205, 196, 0.2);
+        border: 1px solid #4ecdc4;
+        color: #4ecdc4;
+        display: block;
+    }
+    
+    .status-message.error {
+        background: rgba(255, 107, 107, 0.2);
+        border: 1px solid #ff6b6b;
+        color: #ff6b6b;
+        display: block;
+    }
+    
+    /* Settings Card */
+    .settings-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 25px;
+    }
+    
+    .settings-card h3 {
+        color: #4ecdc4;
+        font-size: 18px;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Form Group */
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #ffffff;
+        font-weight: 500;
+    }
+    
+    .form-group .help-text {
+        font-size: 13px;
+        color: #888888;
+        margin-top: 6px;
+    }
+    
+    /* Select */
+    .form-group select {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .form-group select:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .form-group select:focus {
+        outline: none;
+        border-color: #4ecdc4;
+    }
+    
+    /* Range Slider */
+    .range-group {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .range-group input[type="range"] {
+        flex: 1;
+        height: 8px;
+        -webkit-appearance: none;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        outline: none;
+    }
+    
+    .range-group input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 24px;
+        height: 24px;
+        background: #4ecdc4;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+    
+    .range-group input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+    }
+    
+    .range-value {
+        min-width: 60px;
+        padding: 10px 15px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 600;
+        color: #4ecdc4;
+    }
+    
+    /* Number Input */
+    .form-group input[type="number"] {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(0, 0, 0, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: #ffffff;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-group input[type="number"]:focus {
+        outline: none;
+        border-color: #4ecdc4;
+    }
+    
+    /* Toggle Switch */
+    .toggle-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .toggle-group:last-child {
+        border-bottom: none;
+    }
+    
+    .toggle-info {
+        flex: 1;
+    }
+    
+    .toggle-info .title {
+        color: #ffffff;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    
+    .toggle-info .description {
+        font-size: 13px;
+        color: #888888;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        width: 56px;
+        height: 30px;
+        flex-shrink: 0;
+        margin-left: 20px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 30px;
+        transition: 0.3s;
+    }
+    
+    .toggle-slider::before {
+        position: absolute;
+        content: "";
+        height: 24px;
+        width: 24px;
+        left: 3px;
+        bottom: 3px;
+        background: #ffffff;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+        background: #4ecdc4;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider::before {
+        transform: translateX(26px);
+    }
+    
+    /* Info Box */
+    .info-box {
+        background: rgba(0, 136, 255, 0.1);
+        border: 1px solid rgba(0, 136, 255, 0.3);
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 25px;
+    }
+    
+    .info-box h4 {
+        color: #00aaff;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+    
+    .info-box table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-box th,
+    .info-box td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .info-box th {
+        color: #00aaff;
+        font-weight: 500;
+    }
+    
+    .info-box td {
+        color: #aaaaaa;
+    }
+    
+    .info-box tr:last-child th,
+    .info-box tr:last-child td {
+        border-bottom: none;
+    }
+    
+    /* Actions */
+    .settings-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+        .settings-nav {
+            flex-direction: column;
+        }
+        
+        .settings-nav a {
+            text-align: center;
+        }
+        
+        .range-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .range-value {
+            text-align: center;
+        }
+        
+        .toggle-group {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .toggle-switch {
+            margin-left: 0;
+        }
+        
+        .settings-actions {
+            flex-direction: column;
+        }
+        
+        .settings-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    
+    <!-- Header -->
+    <div class="settings-header">
+        <div class="icon">{{ icon }}</div>
+        <h1>{{ settings_type }} Einstellungen</h1>
+        <p class="subtitle">Station: {{ station_name }}</p>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="settings-nav">
+        <a href="/admin/">← Admin</a>
+        {% for nav_type in nav_types %}
+        <a href="/admin/settings/{{ station }}/{{ nav_type }}"
+           class="{% if settings_type_lower == nav_type %}active{% endif %}">
+            {% if nav_type == 'face' %}👤{% elif nav_type == 'person' %}🚶{% elif nav_type == 'clothing' %}👕{% elif nav_type == 'crop' %}✂️{% endif %}
+            {{ nav_type.title() }}
+        </a>
+        {% endfor %}
+    </div>
+    
+    <!-- Status Message -->
+    <div class="status-message" id="status-message"></div>
+    
+    <!-- Settings Form -->
+    <div class="settings-card">
+        <h3>🔧 Einstellungen</h3>
+        <div id="settings-form">
+            <!-- Wird dynamisch gefüllt -->
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="settings-actions">
+        <button class="btn btn-primary btn-lg" onclick="saveSettings()">
+            💾 Einstellungen speichern
+        </button>
+        <button class="btn btn-secondary" onclick="resetToDefaults()">
+            🔄 Zurücksetzen
+        </button>
+    </div>
+    
+    <!-- Info Box für Face -->
+    <div class="info-box" id="info-face" style="display: none;">
+        <h4>📊 Model-Vergleich</h4>
+        <table>
+            <tr>
+                <th>Eigenschaft</th>
+                <th>HOG</th>
+                <th>CNN</th>
+            </tr>
+            <tr>
+                <td>Geschwindigkeit</td>
+                <td>⚡ Schnell</td>
+                <td>🐢 Langsam</td>
+            </tr>
+            <tr>
+                <td>Genauigkeit</td>
+                <td>👍 Gut</td>
+                <td>👌 Sehr gut</td>
+            </tr>
+            <tr>
+                <td>Seitliche Gesichter</td>
+                <td>❌ Schlecht</td>
+                <td>✅ Besser</td>
+            </tr>
+            <tr>
+                <td>GPU benötigt</td>
+                <td>Nein</td>
+                <td>Empfohlen</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Info Box für Clothing -->
+    <div class="info-box" id="info-clothing" style="display: none;">
+        <h4>💡 Tipps für beste Ergebnisse</h4>
+        <table>
+            <tr>
+                <th>Einstellung</th>
+                <th>Empfehlung</th>
+            </tr>
+            <tr>
+                <td>Körperbereich</td>
+                <td>2.0-3.0 für Oberkörper, 3.5-4.0 für Ganzkörper</td>
+            </tr>
+            <tr>
+                <td>Anzahl Farben</td>
+                <td>3 ist optimal, mehr bei bunter Kleidung</td>
+            </tr>
+            <tr>
+                <td>Muster-Erkennung</td>
+                <td>Funktioniert am besten bei klaren Streifen</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Info Box für Person -->
+    <div class="info-box" id="info-person" style="display: none;">
+        <h4>🚶 Methoden-Vergleich</h4>
+        <table>
+            <tr>
+                <th>Eigenschaft</th>
+                <th>YOLO</th>
+                <th>HOG</th>
+            </tr>
+            <tr>
+                <td>Genauigkeit</td>
+                <td>⭐⭐⭐ Sehr hoch</td>
+                <td>⭐⭐ Mittel</td>
+            </tr>
+            <tr>
+                <td>Geschwindigkeit</td>
+                <td>🏃 Schnell (mit GPU)</td>
+                <td>🚶 Mittel</td>
+            </tr>
+            <tr>
+                <td>Mehrere Personen</td>
+                <td>✅ Sehr gut</td>
+                <td>⚠️ Okay</td>
+            </tr>
+            <tr>
+                <td>Installation</td>
+                <td>Ultralytics Package</td>
+                <td>In OpenCV enthalten</td>
+            </tr>
+        </table>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ========================================
+    // KONFIGURATION
+    // ========================================
+    
+    const station = '{{ station }}';
+    const settingsType = '{{ settings_type_lower }}';
+    
+    let currentSettings = {};
+    
+    // Form-Definitionen für jeden Typ
+    const formConfigs = {
+        face: [
+            {
+                id: 'enabled',
+                type: 'toggle',
+                label: 'Gesichtserkennung aktivieren',
+                description: 'Erkennt Gesichter im Bild',
+                default: true
+            },
+            {
+                id: 'model',
+                type: 'select',
+                label: 'Erkennungs-Model',
+                help: 'HOG ist schneller, CNN ist genauer',
+                options: [
+                    { value: 'hog', label: 'HOG - Schnell (CPU)' },
+                    { value: 'cnn', label: 'CNN - Genau (GPU empfohlen)' }
+                ],
+                default: 'hog'
+            },
+            {
+                id: 'upsample',
+                type: 'range',
+                label: 'Upsample-Faktor',
+                help: 'Höher = findet kleinere Gesichter, aber langsamer',
+                min: 0, max: 3, step: 1,
+                default: 1
+            },
+            {
+                id: 'tolerance',
+                type: 'range',
+                label: 'Toleranz',
+                help: 'Niedriger = strenger, weniger Fehlerkennungen',
+                min: 0.3, max: 0.9, step: 0.05,
+                default: 0.6
+            },
+            {
+                id: 'min_face_size',
+                type: 'number',
+                label: 'Minimale Gesichtsgröße (Pixel)',
+                help: 'Kleinere Gesichter werden ignoriert',
+                min: 10, max: 200,
+                default: 20
+            }
+        ],
+        
+        person: [
+            {
+                id: 'enabled',
+                type: 'toggle',
+                label: 'Personenerkennung aktivieren',
+                description: 'Erkennt Personen im Bild',
+                default: true
+            },
+            {
+                id: 'method',
+                type: 'select',
+                label: 'Erkennungsmethode',
+                help: 'YOLO ist genauer, HOG ist leichter',
+                options: [
+                    { value: 'auto', label: 'Automatisch (YOLO wenn verfügbar)' },
+                    { value: 'yolo', label: 'YOLO (genauer)' },
+                    { value: 'hog', label: 'HOG (leichter)' }
+                ],
+                default: 'auto'
+            },
+            {
+                id: 'model_size',
+                type: 'select',
+                label: 'YOLO Modellgröße',
+                help: 'Größer = genauer aber langsamer',
+                options: [
+                    { value: 'n', label: 'Nano (schnellste)' },
+                    { value: 's', label: 'Small' },
+                    { value: 'm', label: 'Medium' },
+                    { value: 'l', label: 'Large (genaueste)' }
+                ],
+                default: 'n'
+            },
+            {
+                id: 'confidence',
+                type: 'range',
+                label: 'Mindest-Konfidenz',
+                help: 'Höher = weniger Fehlerkennungen',
+                min: 0.1, max: 0.9, step: 0.05,
+                default: 0.5
+            },
+            {
+                id: 'min_width',
+                type: 'number',
+                label: 'Minimale Breite (Pixel)',
+                help: 'Mindestbreite für erkannte Personen',
+                min: 20, max: 200,
+                default: 50
+            },
+            {
+                id: 'min_height',
+                type: 'number',
+                label: 'Minimale Höhe (Pixel)',
+                help: 'Mindesthöhe für erkannte Personen',
+                min: 40, max: 400,
+                default: 100
+            }
+        ],
+        
+        clothing: [
+            {
+                id: 'enabled',
+                type: 'toggle',
+                label: 'Kleideranalyse aktivieren',
+                description: 'Analysiert Farben der Kleidung',
+                default: true
+            },
+            {
+                id: 'body_ratio',
+                type: 'range',
+                label: 'Körperbereich (Verhältnis)',
+                help: 'Wie weit unterhalb des Gesichts analysieren',
+                min: 1.5, max: 4.0, step: 0.1,
+                default: 2.5
+            },
+            {
+                id: 'body_width_ratio',
+                type: 'range',
+                label: 'Körperbreite (Verhältnis)',
+                help: 'Breite des Analysebereichs',
+                min: 1.0, max: 2.5, step: 0.1,
+                default: 1.5
+            },
+            {
+                id: 'num_colors',
+                type: 'range',
+                label: 'Anzahl dominante Farben',
+                help: 'Wie viele Hauptfarben erkennen',
+                min: 1, max: 5, step: 1,
+                default: 3
+            },
+            {
+                id: 'analyze_brightness',
+                type: 'toggle',
+                label: 'Helligkeit analysieren',
+                description: 'Erkennt ob Kleidung hell oder dunkel ist',
+                default: true
+            },
+            {
+                id: 'analyze_patterns',
+                type: 'toggle',
+                label: 'Muster erkennen',
+                description: 'Versucht Muster wie gestreift, kariert zu erkennen',
+                default: true
+            }
+        ],
+
+        crop: [
+            {
+                id: 'enabled',
+                type: 'toggle',
+                label: 'Zuschnitt aktivieren',
+                description: 'Schneidet Bilder automatisch zu',
+                default: true
+            },
+            {
+                id: 'xPercent',
+                type: 'range',
+                label: 'X-Position (%)',
+                help: 'Horizontaler Startpunkt des Zuschnitts',
+                min: 0, max: 50, step: 0.1,
+                default: 10.5
+            },
+            {
+                id: 'yPercent',
+                type: 'range',
+                label: 'Y-Position (%)',
+                help: 'Vertikaler Startpunkt des Zuschnitts',
+                min: 0, max: 50, step: 0.1,
+                default: 31.1
+            },
+            {
+                id: 'widthPercent',
+                type: 'range',
+                label: 'Breite (%)',
+                help: 'Breite des zugeschnittenen Bereichs',
+                min: 10, max: 100, step: 0.1,
+                default: 48.6
+            },
+            {
+                id: 'heightPercent',
+                type: 'range',
+                label: 'Höhe (%)',
+                help: 'Höhe des zugeschnittenen Bereichs',
+                min: 10, max: 100, step: 0.1,
+                default: 44.1
+            }
+        ],
+
+        display: [
+            {
+                id: 'carousel_original',
+                type: 'toggle',
+                label: 'Karussell: Originalbilder anzeigen',
+                description: 'Zeigt Originalbilder anstatt bearbeitete Bilder im Karussell',
+                default: true
+            },
+            {
+                id: 'search_original',
+                type: 'toggle',
+                label: 'Suche: Originalbilder anzeigen',
+                description: 'Zeigt Originalbilder anstatt bearbeitete Bilder in Suchergebnissen',
+                default: true
+            },
+            {
+                id: 'gallery_original',
+                type: 'toggle',
+                label: 'Galerie: Originalbilder anzeigen',
+                description: 'Zeigt Originalbilder anstatt bearbeitete Bilder in der Galerie',
+                default: true
+            }
+        ],
+
+        carousel: [
+            {
+                id: 'auto_play',
+                type: 'toggle',
+                label: 'Automatisches Abspielen aktivieren',
+                description: 'Karussell wechselt automatisch zwischen Bildern',
+                default: true
+            },
+            {
+                id: 'interval',
+                type: 'number',
+                label: 'Intervall (Millisekunden)',
+                help: 'Zeit zwischen automatischen Wechseln (1000ms = 1 Sekunde)',
+                min: 1000, max: 30000, step: 500,
+                default: 5000
+            },
+            {
+                id: 'max_images',
+                type: 'number',
+                label: 'Maximale Bilder im Karussell',
+                help: 'Wie viele Bilder maximal im Karussell angezeigt werden',
+                min: 5, max: 100, step: 5,
+                default: 50
+            },
+            {
+                id: 'images_per_view',
+                type: 'number',
+                label: 'Bilder pro Ansicht',
+                help: 'Wie viele Bilder gleichzeitig angezeigt werden (1-10)',
+                min: 1, max: 10, step: 1,
+                default: 3
+            },
+            {
+                id: 'new_images_priority',
+                type: 'toggle',
+                label: 'Neue Bilder priorisieren',
+                description: 'Neue Bilder werden sofort im Karussell angezeigt',
+                default: true
+            },
+            {
+                id: 'sequential_display',
+                type: 'toggle',
+                label: 'Sequenzielle Anzeige',
+                description: 'Bilder werden in chronologischer Reihenfolge ohne Mischen angezeigt',
+                default: true
+            },
+            {
+                id: 'show_newest_first',
+                type: 'toggle',
+                label: 'Neueste Bilder zuerst',
+                description: 'Neueste Bilder werden zuerst im Karussell angezeigt',
+                default: true
+            },
+            {
+                id: 'newest_image_position',
+                type: 'select',
+                label: 'Position neueste Bilder',
+                help: 'Wo sollen die neuesten Bilder im Karussell angezeigt werden?',
+                options: [
+                    { value: 'left', label: 'Links (erste Position)' },
+                    { value: 'right', label: 'Rechts (letzte Position)' }
+                ],
+                default: 'left'
+            },
+            {
+                id: 'update_interval',
+                type: 'number',
+                label: 'Aktualisierungsintervall (Sekunden)',
+                help: 'Wie oft das Karussell nach neuen Bildern sucht',
+                min: 5, max: 300, step: 5,
+                default: 10
+            },
+            {
+                id: 'slide_direction',
+                type: 'select',
+                label: 'Slide-Richtung',
+                help: 'Richtung des automatischen Wechsels',
+                options: [
+                    { value: 'forward', label: 'Vorwärts (→)' },
+                    { value: 'backward', label: 'Rückwärts (←)' }
+                ],
+                default: 'forward'
+            }
+        ]
+    };
+    
+    // ========================================
+    // FORM RENDERN
+    // ========================================
+    
+    function renderForm() {
+        const config = formConfigs[settingsType] || [];
+        const container = document.getElementById('settings-form');
+        
+        if (config.length === 0) {
+            container.innerHTML = '<p style="color: #888;">Keine Einstellungen für diesen Typ verfügbar.</p>';
+            return;
+        }
+        
+        let html = '';
+        
+        config.forEach(field => {
+            const value = currentSettings[field.id] !== undefined 
+                ? currentSettings[field.id] 
+                : field.default;
+            
+            html += '<div class="form-group">';
+            
+            switch (field.type) {
+                case 'select':
+                    html += `<label>${field.label}</label>`;
+                    html += `<select id="${field.id}">`;
+                    field.options.forEach(opt => {
+                        const selected = value === opt.value ? 'selected' : '';
+                        html += `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+                    });
+                    html += '</select>';
+                    if (field.help) html += `<div class="help-text">${field.help}</div>`;
+                    break;
+                    
+                case 'range':
+                    html += `<label>${field.label}</label>`;
+                    html += `<div class="range-group">`;
+                    html += `<input type="range" id="${field.id}" 
+                                min="${field.min}" max="${field.max}" step="${field.step}" 
+                                value="${value}"
+                                oninput="updateRangeValue('${field.id}')">`;
+                    html += `<div class="range-value" id="${field.id}-value">${value}</div>`;
+                    html += `</div>`;
+                    if (field.help) html += `<div class="help-text">${field.help}</div>`;
+                    break;
+                    
+                case 'number':
+                    html += `<label>${field.label}</label>`;
+                    html += `<input type="number" id="${field.id}" 
+                                min="${field.min}" max="${field.max}" 
+                                value="${value}">`;
+                    if (field.help) html += `<div class="help-text">${field.help}</div>`;
+                    break;
+                    
+                case 'toggle':
+                    html += `<div class="toggle-group">`;
+                    html += `<div class="toggle-info">`;
+                    html += `<div class="title">${field.label}</div>`;
+                    if (field.description) html += `<div class="description">${field.description}</div>`;
+                    html += `</div>`;
+                    html += `<label class="toggle-switch">`;
+                    html += `<input type="checkbox" id="${field.id}" ${value ? 'checked' : ''}>`;
+                    html += `<span class="toggle-slider"></span>`;
+                    html += `</label>`;
+                    html += `</div>`;
+                    break;
+            }
+            
+            html += '</div>';
+        });
+        
+        container.innerHTML = html;
+        
+        // Info-Box anzeigen
+        showInfoBox();
+    }
+    
+    function updateRangeValue(id) {
+        const input = document.getElementById(id);
+        const display = document.getElementById(id + '-value');
+        if (input && display) {
+            display.textContent = input.value;
+        }
+    }
+    
+    function showInfoBox() {
+        // Alle verstecken
+        document.querySelectorAll('.info-box').forEach(box => {
+            box.style.display = 'none';
+        });
+        
+        // Passende anzeigen
+        const infoBox = document.getElementById('info-' + settingsType);
+        if (infoBox) {
+            infoBox.style.display = 'block';
+        }
+    }
+    
+    // ========================================
+    // EINSTELLUNGEN LADEN
+    // ========================================
+    
+    async function loadSettings() {
+        try {
+            const response = await api(`/admin/api/settings/${station}/${settingsType}`);
+            
+            if (response.success && response.settings) {
+                currentSettings = response.settings;
+            } else {
+                currentSettings = {};
+            }
+            
+            renderForm();
+            
+        } catch (error) {
+            console.error('Fehler beim Laden:', error);
+            currentSettings = {};
+            renderForm();
+        }
+    }
+    
+    // ========================================
+    // EINSTELLUNGEN SPEICHERN
+    // ========================================
+    
+    async function saveSettings() {
+        const config = formConfigs[settingsType] || [];
+        const settings = {};
+        
+        config.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (!element) return;
+            
+            switch (field.type) {
+                case 'toggle':
+                    settings[field.id] = element.checked;
+                    break;
+                case 'range':
+                case 'number':
+                    settings[field.id] = parseFloat(element.value);
+                    break;
+                default:
+                    settings[field.id] = element.value;
+            }
+        });
+        
+        try {
+            const response = await api(`/admin/api/settings/${station}/${settingsType}`, {
+                method: 'POST',
+                body: JSON.stringify(settings)
+            });
+            
+            if (response.success) {
+                currentSettings = settings;
+                showStatus('✅ Einstellungen gespeichert!', 'success');
+            } else {
+                showStatus('❌ Fehler beim Speichern', 'error');
+            }
+            
+        } catch (error) {
+            console.error('Speicherfehler:', error);
+            showStatus('❌ Speichern fehlgeschlagen', 'error');
+        }
+    }
+    
+    // ========================================
+    // ZURÜCKSETZEN
+    // ========================================
+    
+    function resetToDefaults() {
+        if (!confirm('Wirklich auf Standardwerte zurücksetzen?')) return;
+        
+        const config = formConfigs[settingsType] || [];
+        currentSettings = {};
+        
+        config.forEach(field => {
+            currentSettings[field.id] = field.default;
+        });
+        
+        renderForm();
+        showStatus('🔄 Auf Standardwerte zurückgesetzt (noch nicht gespeichert)', 'success');
+    }
+    
+    // ========================================
+    // STATUS ANZEIGEN
+    // ========================================
+    
+    function showStatus(message, type) {
+        const statusEl = document.getElementById('status-message');
+        statusEl.textContent = message;
+        statusEl.className = 'status-message ' + type;
+        
+        if (type === 'success') {
+            setTimeout(() => {
+                statusEl.className = 'status-message';
+            }, 3000);
+        }
+    }
+    
+    // ========================================
+    // INITIALISIERUNG
+    // ========================================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSettings();
+    });
+</script>
+{% endblock %}

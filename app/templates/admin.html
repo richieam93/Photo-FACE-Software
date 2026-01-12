@@ -1,0 +1,1490 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Photo Software{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========================================
+       ADMIN LAYOUT
+       ======================================== */
+    
+    .admin-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        min-height: calc(100vh - 70px);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 25px 15px;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-title {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #888888;
+        padding: 10px 15px;
+        margin-top: 20px;
+    }
+    
+    .sidebar-title:first-child {
+        margin-top: 0;
+    }
+    
+    .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        color: #cccccc;
+        text-decoration: none;
+        border-radius: 12px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .menu-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+    
+    .menu-item.active {
+        background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        color: #ffffff;
+    }
+    
+    .menu-item .icon {
+        font-size: 20px;
+    }
+    
+    /* Main Content */
+    .admin-main {
+        padding: 30px;
+        overflow-y: auto;
+    }
+    
+    /* Sections */
+    .admin-section {
+        display: none;
+    }
+    
+    .admin-section.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Dashboard Cards */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 25px;
+        text-align: center;
+    }
+    
+    .stat-card .icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+    
+    .stat-card .value {
+        font-size: 36px;
+        font-weight: 700;
+        color: #4ecdc4;
+        margin-bottom: 5px;
+    }
+    
+    .stat-card .label {
+        color: #888888;
+        font-size: 14px;
+    }
+    
+    /* Module Status */
+    .module-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .module-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .module-badge.ok {
+        background: rgba(78, 205, 196, 0.2);
+        color: #4ecdc4;
+    }
+    
+    .module-badge.error {
+        background: rgba(255, 107, 107, 0.2);
+        color: #ff6b6b;
+    }
+    
+    /* Settings Form */
+    .settings-form {
+        max-width: 600px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #aaaaaa;
+        font-size: 14px;
+    }
+    
+    .form-group .help {
+        font-size: 12px;
+        color: #666666;
+        margin-top: 5px;
+    }
+    
+    /* Toggle Switch */
+    .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .toggle-label {
+        color: #ffffff;
+    }
+    
+    .toggle-desc {
+        font-size: 13px;
+        color: #888888;
+        margin-top: 3px;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 28px;
+    }
+    
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 28px;
+        transition: 0.3s;
+    }
+    
+    .toggle-slider::before {
+        position: absolute;
+        content: "";
+        height: 22px;
+        width: 22px;
+        left: 3px;
+        bottom: 3px;
+        background: #ffffff;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider {
+        background: #4ecdc4;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider::before {
+        transform: translateX(22px);
+    }
+    
+    /* Quick Actions */
+    .quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    /* Log Box */
+    .log-box {
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 12px;
+        padding: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 12px;
+        line-height: 1.8;
+    }
+    
+    .log-line {
+        color: #888888;
+    }
+    
+    .log-line.error {
+        color: #ff6b6b;
+    }
+    
+    .log-line.success {
+        color: #4ecdc4;
+    }
+    
+    /* Images Grid */
+    .images-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .image-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .image-card img {
+        width: 100%;
+        aspect-ratio: 4/3;
+        object-fit: cover;
+    }
+    
+    .image-card-info {
+        padding: 12px;
+        font-size: 12px;
+    }
+    
+    .image-card-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .delete-btn {
+        background: rgba(255, 107, 107, 0.8);
+        border: none;
+        color: #ffffff;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .image-card:hover .delete-btn {
+        opacity: 1;
+    }
+    
+    /* Path Input Group */
+    .path-input-group {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .path-input-group input {
+        flex: 1;
+    }
+    
+    /* Printer Config */
+    .printer-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .printer-card h4 {
+        color: #4ecdc4;
+        margin-bottom: 20px;
+        font-size: 18px;
+    }
+    
+    .printer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .admin-layout {
+            grid-template-columns: 1fr;
+        }
+        
+        .sidebar {
+            display: flex;
+            overflow-x: auto;
+            padding: 15px;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-title {
+            display: none;
+        }
+        
+        .menu-item {
+            white-space: nowrap;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-title">Übersicht</div>
+        <a class="menu-item active" onclick="showSection('dashboard', this)">
+            <span class="icon">📊</span> Dashboard
+        </a>
+        
+        <div class="sidebar-title">Verarbeitung</div>
+        <a class="menu-item" onclick="showSection('processing', this)">
+            <span class="icon">⚡</span> Verarbeitung
+        </a>
+        <a class="menu-item" onclick="showSection('images', this)">
+            <span class="icon">🖼️</span> Bilder
+        </a>
+        <a class="menu-item" onclick="showSection('editor', this)">
+            <span class="icon">✂️</span> Zuschnitt
+        </a>
+        
+        <div class="sidebar-title">Einstellungen</div>
+        <a class="menu-item" onclick="showSection('camera', this)">
+            <span class="icon">📷</span> Kamera
+        </a>
+        <a class="menu-item" onclick="showSection('printers', this)">
+            <span class="icon">🖨️</span> Drucker
+        </a>
+        <a class="menu-item" onclick="showSection('paths', this)">
+            <span class="icon">📁</span> Pfade
+        </a>
+        <a class="menu-item" onclick="showSection('search', this)">
+            <span class="icon">🔍</span> Suche
+        </a>
+        
+        <div class="sidebar-title">System</div>
+        <a class="menu-item" onclick="showSection('logs', this)">
+            <span class="icon">📋</span> Logs
+        </a>
+        <a class="menu-item" onclick="showSection('system', this)">
+            <span class="icon">🔧</span> System
+        </a>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="admin-main">
+        
+        <!-- ==============================
+             DASHBOARD
+             ============================== -->
+        <section class="admin-section active" id="section-dashboard">
+            <h1>📊 Dashboard</h1>
+            
+            <div class="card">
+                <h3>System-Module</h3>
+                <div class="module-grid" id="modules-grid">
+                    <!-- Dynamisch gefüllt -->
+                </div>
+            </div>
+            
+            <div class="dashboard-grid" id="stats-grid">
+                <!-- Dynamisch gefüllt -->
+            </div>
+            
+            <div class="card">
+                <h3>Schnellaktionen</h3>
+                <div class="quick-actions">
+                    <button class="btn btn-primary" onclick="processAll()">
+                        ⚡ Alle verarbeiten
+                    </button>
+                    <button class="btn btn-success" onclick="toggleWatcher()" id="watcher-btn">
+                        ▶️ Überwachung starten
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadDashboard()">
+                        🔄 Aktualisieren
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==============================
+             VERARBEITUNG
+             ============================== -->
+        <section class="admin-section" id="section-processing">
+            <h1>⚡ Verarbeitung</h1>
+
+            <div class="card">
+                <h3>Automatische Verarbeitung</h3>
+                <div class="settings-form">
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Auto-Verarbeitung</div>
+                            <div class="toggle-desc">Neue Bilder automatisch verarbeiten</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-process" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Auto-Überwachung starten</div>
+                            <div class="toggle-desc">Überwachung beim Serverstart automatisch starten (1 Min. Verzögerung)</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-start-watcher">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Original löschen</div>
+                            <div class="toggle-desc">Original nach Verarbeitung löschen</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="delete-original">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>JPEG Qualität (50-100)</label>
+                        <input type="number" id="jpeg-quality" value="85" min="50" max="100">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveProcessingSettings()">
+                        💾 Speichern
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Manuelle Verarbeitung</h3>
+                <p style="color: #888; margin-bottom: 15px;">
+                    Verarbeite alle wartenden Bilder im Input-Ordner
+                </p>
+                <button class="btn btn-primary btn-lg" onclick="processAll()">
+                    ⚡ Jetzt alle verarbeiten
+                </button>
+                <div id="processing-result" style="margin-top: 15px;"></div>
+            </div>
+        </section>
+        
+        <!-- ==============================
+             BILDER
+             ============================== -->
+        <section class="admin-section" id="section-images">
+            <h1>🖼️ Verarbeitete Bilder</h1>
+            
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <span id="images-count">0 Bilder</span>
+                    <button class="btn btn-danger" onclick="deleteAllImages()">
+                        🗑️ Alle löschen
+                    </button>
+                </div>
+                
+                <div class="images-grid" id="images-grid">
+                    <!-- Dynamisch gefüllt -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==============================
+             ZUSCHNITT-EDITOR LINK
+             ============================== -->
+        <section class="admin-section" id="section-editor">
+            <h1>✂️ Zuschnitt-Editor</h1>
+            
+            <div class="card">
+                <p style="margin-bottom: 20px;">
+                    Öffne den Zuschnitt-Editor um Bild-Zuschneide-Einstellungen festzulegen.
+                </p>
+                
+                <a href="/admin/editor/default" class="btn btn-primary btn-lg">
+                    ✂️ Editor öffnen
+                </a>
+            </div>
+            
+            <div class="card">
+                <h3>Weitere Einstellungen</h3>
+                <div class="quick-actions">
+                    <a href="/admin/settings/default/face" class="btn btn-secondary">
+                        👤 Gesichtserkennung
+                    </a>
+                    <a href="/admin/settings/default/person" class="btn btn-secondary">
+                        🚶 Personenerkennung
+                    </a>
+                    <a href="/admin/settings/default/clothing" class="btn btn-secondary">
+                        👕 Kleiderfarben
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==============================
+             KAMERA
+             ============================== -->
+        <section class="admin-section" id="section-camera">
+            <h1>📷 Kamera-Einstellungen</h1>
+            
+            <div class="card">
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Kamera-ID</label>
+                        <input type="number" id="cam-id" value="0" min="0">
+                        <div class="help">Normalerweise 0 für die erste Kamera</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Auflösung Breite</label>
+                        <input type="number" id="cam-width" value="1280">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Auflösung Höhe</label>
+                        <input type="number" id="cam-height" value="720">
+                    </div>
+                    
+                    <div class="toggle-row">
+                        <div>
+                            <div class="toggle-label">Horizontal spiegeln</div>
+                            <div class="toggle-desc">Für Selfie-Ansicht</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="cam-flip" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="saveCameraSettings()">
+                            💾 Speichern
+                        </button>
+                        <button class="btn btn-secondary" onclick="testCamera()">
+                            🎥 Testen
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card" id="camera-preview" style="display: none;">
+                <h3>Kamera-Vorschau</h3>
+                <img id="camera-test-img" style="max-width: 100%; border-radius: 10px;">
+            </div>
+        </section>
+        
+        <!-- ==============================
+             DRUCKER
+             ============================== -->
+        <section class="admin-section" id="section-printers">
+            <h1>🖨️ Drucker-Konfiguration</h1>
+            
+            <div class="card">
+                <div class="toggle-row" style="margin-bottom: 25px;">
+                    <div>
+                        <div class="toggle-label">Drucken aktivieren</div>
+                        <div class="toggle-desc">Ermöglicht Kunden das Drucken von Fotos</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="printing-enabled" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Small Printer -->
+            <div class="printer-card">
+                <h4>📄 Small Drucker</h4>
+
+                <!-- Basic Settings -->
+                <div class="printer-grid">
+                    <div class="form-group">
+                        <label>Windows Freigabename</label>
+                        <input type="text" id="printer-small-name" placeholder="\\\\Server\\Drucker">
+                    </div>
+                    <div class="form-group">
+                        <label>Preis (CHF)</label>
+                        <input type="number" id="printer-small-price" value="5.00" step="0.50" min="0">
+                    </div>
+                </div>
+
+                <!-- Paper Settings -->
+                <h5 style="margin-top: 25px; color: #4ecdc4;">📄 Papier-Einstellungen</h5>
+                <div class="printer-grid">
+                    <div class="form-group">
+                        <label>Papierformat</label>
+                        <select id="printer-small-paper-size">
+                            <option value="A6">A6</option>
+                            <option value="A5">A5</option>
+                            <option value="A4">A4</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ausrichtung</label>
+                        <select id="printer-small-page-orientation">
+                            <option value="Vertical">Vertikal</option>
+                            <option value="Horizontal">Horizontal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Photo Layout -->
+                <h5 style="margin-top: 25px; color: #4ecdc4;">🖼️ Foto-Layout (mm)</h5>
+                <div class="printer-grid">
+                    <div class="form-group">
+                        <label>Foto-Breite</label>
+                        <input type="number" id="printer-small-photo-width" value="175" step="1" min="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Foto-Höhe</label>
+                        <input type="number" id="printer-small-photo-height" value="119" step="1" min="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Linker Rand Foto</label>
+                        <input type="number" id="printer-small-left-margin-photo" value="2.6" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Oberer Rand Foto</label>
+                        <input type="number" id="printer-small-top-margin-photo" value="7.4" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <!-- Text Settings -->
+                <h5 style="margin-top: 25px; color: #4ecdc4;">📝 Text-Einstellungen</h5>
+                <div class="printer-grid">
+                    <div class="form-group">
+                        <label>Linker Rand Text</label>
+                        <input type="number" id="printer-small-left-margin-text" value="139" step="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Oberer Rand Text</label>
+                        <input type="number" id="printer-small-top-margin-text" value="120.6" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Text-Rotation (°)</label>
+                        <input type="number" id="printer-small-text-rotation" value="0" step="1" min="-360" max="360">
+                    </div>
+                    <div class="form-group">
+                        <label>Schriftart</label>
+                        <select id="printer-small-text-font">
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Verdana">Verdana</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Schriftgröße (mm)</label>
+                        <input type="number" id="printer-small-text-size" value="11" step="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Textfarbe</label>
+                        <input type="color" id="printer-small-text-color" value="#000000">
+                    </div>
+                </div>
+
+                <div class="toggle-row" style="margin-top: 15px;">
+                    <div>
+                        <div class="toggle-label">Datum drucken</div>
+                        <div class="toggle-desc">Datum automatisch zum Foto hinzufügen</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="printer-small-enable-date" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-label">Drucker aktiviert</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="printer-small-enabled" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Big Printer -->
+            <div class="printer-card">
+                <h4>🖼️ Big Drucker</h4>
+
+                <!-- Basic Settings -->
+                <div class="printer-grid">
+                    <div class="form-group">
+                        <label>Windows Freigabename</label>
+                        <input type="text" id="printer-big-name" placeholder="\\\\Server\\Drucker">
+                    </div>
+                    <div class="form-group">
+                        <label>Preis (CHF)</label>
+                        <input type="number" id="printer-big-price" value="8.00" step="0.50" min="0">
+                    </div>
+                </div>
+
+                <!-- Paper Settings -->
+                <h5 style="margin-top: 25px; color: #4ecdc4;">📄 Papier-Einstellungen</h5>
+                <div class="printer-grid">
+                    <div class="form-group">
+                        <label>Papierformat</label>
+                        <select id="printer-big-paper-size">
+                            <option value="A6">A6</option>
+                            <option value="A5">A5</option>
+                            <option value="A4">A4</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ausrichtung</label>
+                        <select id="printer-big-page-orientation">
+                            <option value="Vertical">Vertikal</option>
+                            <option value="Horizontal">Horizontal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Photo Layout -->
+                <h5 style="margin-top: 25px; color: #4ecdc4;">🖼️ Foto-Layout (mm)</h5>
+                <div class="printer-grid">
+                    <div class="form-group">
+                        <label>Foto-Breite</label>
+                        <input type="number" id="printer-big-photo-width" value="175" step="1" min="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Foto-Höhe</label>
+                        <input type="number" id="printer-big-photo-height" value="119" step="1" min="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Linker Rand Foto</label>
+                        <input type="number" id="printer-big-left-margin-photo" value="2.6" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Oberer Rand Foto</label>
+                        <input type="number" id="printer-big-top-margin-photo" value="7.4" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <!-- Text Settings -->
+                <h5 style="margin-top: 25px; color: #4ecdc4;">📝 Text-Einstellungen</h5>
+                <div class="printer-grid">
+                    <div class="form-group">
+                        <label>Linker Rand Text</label>
+                        <input type="number" id="printer-big-left-margin-text" value="139" step="1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Oberer Rand Text</label>
+                        <input type="number" id="printer-big-top-margin-text" value="120.6" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Text-Rotation (°)</label>
+                        <input type="number" id="printer-big-text-rotation" value="0" step="1" min="-360" max="360">
+                    </div>
+                    <div class="form-group">
+                        <label>Schriftart</label>
+                        <select id="printer-big-text-font">
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Verdana">Verdana</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Schriftgröße (mm)</label>
+                        <input type="number" id="printer-big-text-size" value="11" step="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Textfarbe</label>
+                        <input type="color" id="printer-big-text-color" value="#000000">
+                    </div>
+                </div>
+
+                <div class="toggle-row" style="margin-top: 15px;">
+                    <div>
+                        <div class="toggle-label">Datum drucken</div>
+                        <div class="toggle-desc">Datum automatisch zum Foto hinzufügen</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="printer-big-enable-date" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-label">Drucker aktiviert</div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="printer-big-enabled" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" onclick="savePrinterSettings()">
+                💾 Drucker speichern
+            </button>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="testPrinter('small')">
+                    🖨️ Small Drucker testen
+                </button>
+                <button class="btn btn-secondary" onclick="testPrinter('big')">
+                    🖨️ Big Drucker testen
+                </button>
+            </div>
+        </section>
+        
+        <!-- ==============================
+             PFADE
+             ============================== -->
+        <section class="admin-section" id="section-paths">
+            <h1>📁 Pfad-Einstellungen</h1>
+            
+            <div class="card">
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>📥 Input-Ordner</label>
+                        <input type="text" id="path-input" placeholder="photos/input">
+                        <div class="help">Neue Bilder werden hier abgelegt</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📂 Temp-Ordner</label>
+                        <input type="text" id="path-temp" placeholder="photos/temp">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>✅ Verarbeitet-Ordner</label>
+                        <input type="text" id="path-processed" placeholder="photos/processed">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📤 Output-Ordner</label>
+                        <input type="text" id="path-output" placeholder="photos/output">
+                        <div class="help">Hier landen die finalen Bilder für Kunden</div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="savePathSettings()">
+                        💾 Pfade speichern
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==============================
+             SUCHE
+             ============================== -->
+        <section class="admin-section" id="section-search">
+            <h1>🔍 Such-Einstellungen</h1>
+
+            <div class="card">
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Face-Match Schwellwert (0.4 - 0.8)</label>
+                        <input type="number" id="search-face-threshold" value="0.6" step="0.05" min="0.4" max="0.8">
+                        <div class="help">Niedriger = strenger, weniger Matches</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Farb-Match Schwellwert (10 - 100)</label>
+                        <input type="number" id="search-color-threshold" value="50" min="10" max="100">
+                        <div class="help">Niedriger = genauere Farbübereinstimmung</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Maximale Suchergebnisse</label>
+                        <input type="number" id="search-max-results" value="20" min="5" max="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Auto-Weiterleitung nach Suche (Sekunden)</label>
+                        <input type="number" id="search-redirect-timer" value="30" min="5" max="300">
+                        <div class="help">Zeit bis zur automatischen Weiterleitung zurück zur Startseite (0 = deaktiviert)</div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveSearchSettings()">
+                        💾 Speichern
+                    </button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==============================
+             LOGS
+             ============================== -->
+        <section class="admin-section" id="section-logs">
+            <h1>📋 System-Logs</h1>
+            
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                    <button class="btn btn-secondary" onclick="loadLogs()">🔄 Aktualisieren</button>
+                    <button class="btn btn-danger" onclick="clearLogs()">🗑️ Logs löschen</button>
+                </div>
+                
+                <div class="log-box" id="log-box">
+                    <div class="log-line">Logs werden geladen...</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==============================
+             SYSTEM
+             ============================== -->
+        <section class="admin-section" id="section-system">
+            <h1>🔧 System</h1>
+            
+            <div class="card">
+                <h3>Wartung</h3>
+                <div class="quick-actions">
+                    <button class="btn btn-secondary" onclick="cleanupTemp()">
+                        🧹 Temp aufräumen
+                    </button>
+                    <button class="btn btn-danger" onclick="clearDatabase()">
+                        🗑️ Datenbank leeren
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Info</h3>
+                <p><strong>Version:</strong> 1.0.0</p>
+                <p><strong>Uptime:</strong> <span id="uptime">-</span></p>
+            </div>
+        </section>
+        
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ========================================
+    // NAVIGATION
+    // ========================================
+    
+    function showSection(sectionId, element) {
+        // Alle Sections verstecken
+        document.querySelectorAll('.admin-section').forEach(s => {
+            s.classList.remove('active');
+        });
+
+        // Gewählte Section anzeigen
+        document.getElementById('section-' + sectionId).classList.add('active');
+
+        // Menu Items aktualisieren
+        document.querySelectorAll('.menu-item').forEach(m => {
+            m.classList.remove('active');
+        });
+        if (element) element.classList.add('active');
+
+        // Daten laden
+        if (sectionId === 'images') loadImages();
+        if (sectionId === 'logs') loadLogs();
+        if (sectionId === 'processing') loadProcessingSettings();
+        if (sectionId === 'printers') loadPrinterSettings();
+    }
+    
+    // ========================================
+    // DASHBOARD
+    // ========================================
+    
+    async function loadDashboard() {
+        try {
+            const data = await api('/admin/api/status');
+            
+            // Module
+            const modulesGrid = document.getElementById('modules-grid');
+            const modules = data.modules || {};
+            
+            modulesGrid.innerHTML = Object.entries(modules).map(([name, ok]) => `
+                <div class="module-badge ${ok ? 'ok' : 'error'}">
+                    ${ok ? '✅' : '❌'} ${name}
+                </div>
+            `).join('');
+            
+            // Watcher Status
+            const watcherBtn = document.getElementById('watcher-btn');
+            if (data.watcher_running) {
+                watcherBtn.textContent = '⏸️ Überwachung stoppen';
+                watcherBtn.className = 'btn btn-danger';
+            } else {
+                watcherBtn.textContent = '▶️ Überwachung starten';
+                watcherBtn.className = 'btn btn-success';
+            }
+            
+            // Stats
+            const stats = data.statistics || {};
+            const statsGrid = document.getElementById('stats-grid');
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="icon">🖼️</div>
+                    <div class="value">${stats.total_images || 0}</div>
+                    <div class="label">Bilder</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">👤</div>
+                    <div class="value">${stats.total_faces || 0}</div>
+                    <div class="label">Gesichter</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🚶</div>
+                    <div class="value">${stats.total_persons || 0}</div>
+                    <div class="label">Personen</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🖨️</div>
+                    <div class="value">${stats.print_jobs || 0}</div>
+                    <div class="label">Druckaufträge</div>
+                </div>
+            `;
+            
+            document.getElementById('uptime').textContent = data.uptime_formatted || '-';
+            
+        } catch (error) {
+            console.error('Dashboard Fehler:', error);
+        }
+    }
+    
+    // ========================================
+    // VERARBEITUNG
+    // ========================================
+    
+    async function processAll() {
+        showToast('Verarbeitung gestartet...', 'info');
+        
+        try {
+            const data = await api('/admin/api/processing/start', { method: 'POST' });
+            
+            if (data.success) {
+                showToast(`✅ ${data.processed} Bilder verarbeitet`, 'success');
+                loadDashboard();
+            } else {
+                showToast(data.error || 'Fehler', 'error');
+            }
+        } catch (error) {
+            showToast('Verarbeitungsfehler', 'error');
+        }
+    }
+    
+    async function toggleWatcher() {
+        try {
+            const data = await api('/admin/api/watcher/toggle', { method: 'POST' });
+            showToast(data.message, data.success ? 'success' : 'error');
+            loadDashboard();
+        } catch (error) {
+            showToast('Watcher-Fehler', 'error');
+        }
+    }
+    
+    async function loadProcessingSettings() {
+        try {
+            const data = await api('/admin/api/config');
+            if (data.success && data.config && data.config.processing) {
+                const proc = data.config.processing;
+                document.getElementById('auto-process').checked = proc.auto_process || false;
+                document.getElementById('auto-start-watcher').checked = proc.auto_start_watcher || false;
+                document.getElementById('delete-original').checked = proc.delete_original || false;
+                document.getElementById('jpeg-quality').value = proc.jpeg_quality || 85;
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Verarbeitungseinstellungen:', error);
+        }
+    }
+
+    async function saveProcessingSettings() {
+        try {
+            await api('/admin/api/config', {
+                method: 'POST',
+                body: JSON.stringify({
+                    'processing.auto_process': document.getElementById('auto-process').checked,
+                    'processing.auto_start_watcher': document.getElementById('auto-start-watcher').checked,
+                    'processing.delete_original': document.getElementById('delete-original').checked,
+                    'processing.jpeg_quality': parseInt(document.getElementById('jpeg-quality').value)
+                })
+            });
+            showToast('Einstellungen gespeichert', 'success');
+        } catch (error) {
+            showToast('Speicherfehler', 'error');
+        }
+    }
+    
+    // ========================================
+    // BILDER
+    // ========================================
+    
+    async function loadImages() {
+        try {
+            const data = await api('/admin/api/images?limit=50');
+            const grid = document.getElementById('images-grid');
+            const count = document.getElementById('images-count');
+            
+            count.textContent = `${data.count || 0} Bilder`;
+            
+            if (!data.images || data.images.length === 0) {
+                grid.innerHTML = '<p style="color: #888;">Keine Bilder vorhanden</p>';
+                return;
+            }
+            
+            grid.innerHTML = data.images.map(img => `
+                <div class="image-card">
+                    <img src="/gallery/thumbnail/${img.id}?size=300" alt="${img.filename}">
+                    <div class="image-card-actions">
+                        <button class="delete-btn" onclick="deleteImage('${img.id}')">×</button>
+                    </div>
+                    <div class="image-card-info">
+                        <strong>${img.filename}</strong><br>
+                        👤 ${img.face_count || 0} | 🚶 ${img.person_count || 0}
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Bilder laden Fehler:', error);
+        }
+    }
+    
+    async function deleteImage(imageId) {
+        if (!confirm('Bild wirklich löschen?')) return;
+        
+        try {
+            await api(`/admin/api/images/${imageId}`, { method: 'DELETE' });
+            showToast('Bild gelöscht', 'success');
+            loadImages();
+            loadDashboard();
+        } catch (error) {
+            showToast('Löschfehler', 'error');
+        }
+    }
+    
+    async function deleteAllImages() {
+        if (!confirm('ALLE Bilder löschen? Diese Aktion kann nicht rückgängig gemacht werden!')) return;
+        
+        try {
+            const data = await api('/admin/api/images', { method: 'DELETE' });
+            showToast(data.message, 'success');
+            loadImages();
+            loadDashboard();
+        } catch (error) {
+            showToast('Löschfehler', 'error');
+        }
+    }
+    
+    // ========================================
+    // KAMERA
+    // ========================================
+    
+    async function saveCameraSettings() {
+        try {
+            await api('/admin/api/camera/settings', {
+                method: 'POST',
+                body: JSON.stringify({
+                    device_id: parseInt(document.getElementById('cam-id').value),
+                    width: parseInt(document.getElementById('cam-width').value),
+                    height: parseInt(document.getElementById('cam-height').value),
+                    flip_horizontal: document.getElementById('cam-flip').checked
+                })
+            });
+            showToast('Kamera-Einstellungen gespeichert', 'success');
+        } catch (error) {
+            showToast('Speicherfehler', 'error');
+        }
+    }
+    
+    async function testCamera() {
+        showToast('Kamera wird getestet...', 'info');
+        
+        try {
+            const data = await api('/admin/api/camera/test');
+            
+            if (data.success) {
+                document.getElementById('camera-preview').style.display = 'block';
+                document.getElementById('camera-test-img').src = data.image;
+                showToast('Kamera funktioniert!', 'success');
+            } else {
+                showToast(data.message || 'Kamera-Fehler', 'error');
+            }
+        } catch (error) {
+            showToast('Kamera-Test fehlgeschlagen', 'error');
+        }
+    }
+    
+    // ========================================
+    // DRUCKER
+    // ========================================
+
+    async function loadPrinterSettings() {
+        try {
+            const data = await api('/admin/api/printers');
+            if (data.success) {
+                // Global printing enabled
+                document.getElementById('printing-enabled').checked = data.enabled || false;
+
+                // Small printer
+                if (data.printers && data.printers.find(p => p.type === 'small')) {
+                    const small = data.printers.find(p => p.type === 'small');
+                    document.getElementById('printer-small-name').value = small.name || '';
+                    document.getElementById('printer-small-price').value = small.price || 5.00;
+
+                    // Paper settings
+                    document.getElementById('printer-small-paper-size').value = small.paper_size || 'A6';
+                    document.getElementById('printer-small-page-orientation').value = small.page_orientation || 'Vertical';
+
+                    // Photo layout
+                    document.getElementById('printer-small-photo-width').value = small.photo_width || 175;
+                    document.getElementById('printer-small-photo-height').value = small.photo_height || 119;
+                    document.getElementById('printer-small-left-margin-photo').value = small.left_margin_photo || 2.6;
+                    document.getElementById('printer-small-top-margin-photo').value = small.top_margin_photo || 7.4;
+
+                    // Text settings
+                    document.getElementById('printer-small-left-margin-text').value = small.left_margin_text || 139;
+                    document.getElementById('printer-small-top-margin-text').value = small.top_margin_text || 120.6;
+                    document.getElementById('printer-small-text-rotation').value = small.text_rotation_angle || 0;
+                    document.getElementById('printer-small-text-font').value = small.text_font_name || 'Arial';
+                    document.getElementById('printer-small-text-size').value = small.text_size || 11;
+                    document.getElementById('printer-small-text-color').value = small.text_color || '#000000';
+                    document.getElementById('printer-small-enable-date').checked = small.enable_print_date !== false;
+
+                    document.getElementById('printer-small-enabled').checked = small.enabled || false;
+                }
+
+                // Big printer
+                if (data.printers && data.printers.find(p => p.type === 'big')) {
+                    const big = data.printers.find(p => p.type === 'big');
+                    document.getElementById('printer-big-name').value = big.name || '';
+                    document.getElementById('printer-big-price').value = big.price || 8.00;
+
+                    // Paper settings
+                    document.getElementById('printer-big-paper-size').value = big.paper_size || 'A5';
+                    document.getElementById('printer-big-page-orientation').value = big.page_orientation || 'Vertical';
+
+                    // Photo layout
+                    document.getElementById('printer-big-photo-width').value = big.photo_width || 175;
+                    document.getElementById('printer-big-photo-height').value = big.photo_height || 119;
+                    document.getElementById('printer-big-left-margin-photo').value = big.left_margin_photo || 2.6;
+                    document.getElementById('printer-big-top-margin-photo').value = big.top_margin_photo || 7.4;
+
+                    // Text settings
+                    document.getElementById('printer-big-left-margin-text').value = big.left_margin_text || 139;
+                    document.getElementById('printer-big-top-margin-text').value = big.top_margin_text || 120.6;
+                    document.getElementById('printer-big-text-rotation').value = big.text_rotation_angle || 0;
+                    document.getElementById('printer-big-text-font').value = big.text_font_name || 'Arial';
+                    document.getElementById('printer-big-text-size').value = big.text_size || 11;
+                    document.getElementById('printer-big-text-color').value = big.text_color || '#000000';
+                    document.getElementById('printer-big-enable-date').checked = big.enable_print_date !== false;
+
+                    document.getElementById('printer-big-enabled').checked = big.enabled || false;
+                }
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Druckereinstellungen:', error);
+        }
+    }
+
+    async function testPrinter(printerType) {
+        showToast(`Teste ${printerType} Drucker...`, 'info');
+
+        try {
+            const data = await api(`/admin/api/printers/test/${printerType}`, { method: 'POST' });
+
+            if (data.success) {
+                showToast(`✅ ${printerType.toUpperCase()} Drucker ist erreichbar!`, 'success');
+            } else {
+                showToast(`❌ ${printerType.toUpperCase()} Drucker Fehler: ${data.message}`, 'error');
+            }
+        } catch (error) {
+            showToast(`❌ ${printerType.toUpperCase()} Drucker-Test fehlgeschlagen`, 'error');
+        }
+    }
+
+    async function savePrinterSettings() {
+        try {
+            // Small Printer
+            await api('/admin/api/printers/small', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: document.getElementById('printer-small-name').value,
+                    price: parseFloat(document.getElementById('printer-small-price').value),
+                    enabled: document.getElementById('printer-small-enabled').checked,
+                    paper_size: document.getElementById('printer-small-paper-size').value,
+                    page_orientation: document.getElementById('printer-small-page-orientation').value,
+                    photo_width: parseFloat(document.getElementById('printer-small-photo-width').value),
+                    photo_height: parseFloat(document.getElementById('printer-small-photo-height').value),
+                    left_margin_photo: parseFloat(document.getElementById('printer-small-left-margin-photo').value),
+                    top_margin_photo: parseFloat(document.getElementById('printer-small-top-margin-photo').value),
+                    left_margin_text: parseInt(document.getElementById('printer-small-left-margin-text').value),
+                    top_margin_text: parseFloat(document.getElementById('printer-small-top-margin-text').value),
+                    text_rotation_angle: parseInt(document.getElementById('printer-small-text-rotation').value),
+                    text_font_name: document.getElementById('printer-small-text-font').value,
+                    text_size: parseInt(document.getElementById('printer-small-text-size').value),
+                    text_color: document.getElementById('printer-small-text-color').value,
+                    enable_print_date: document.getElementById('printer-small-enable-date').checked
+                })
+            });
+
+            // Big Printer
+            await api('/admin/api/printers/big', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: document.getElementById('printer-big-name').value,
+                    price: parseFloat(document.getElementById('printer-big-price').value),
+                    enabled: document.getElementById('printer-big-enabled').checked,
+                    paper_size: document.getElementById('printer-big-paper-size').value,
+                    page_orientation: document.getElementById('printer-big-page-orientation').value,
+                    photo_width: parseFloat(document.getElementById('printer-big-photo-width').value),
+                    photo_height: parseFloat(document.getElementById('printer-big-photo-height').value),
+                    left_margin_photo: parseFloat(document.getElementById('printer-big-left-margin-photo').value),
+                    top_margin_photo: parseFloat(document.getElementById('printer-big-top-margin-photo').value),
+                    left_margin_text: parseInt(document.getElementById('printer-big-left-margin-text').value),
+                    top_margin_text: parseFloat(document.getElementById('printer-big-top-margin-text').value),
+                    text_rotation_angle: parseInt(document.getElementById('printer-big-text-rotation').value),
+                    text_font_name: document.getElementById('printer-big-text-font').value,
+                    text_size: parseInt(document.getElementById('printer-big-text-size').value),
+                    text_color: document.getElementById('printer-big-text-color').value,
+                    enable_print_date: document.getElementById('printer-big-enable-date').checked
+                })
+            });
+
+            showToast('Drucker gespeichert', 'success');
+        } catch (error) {
+            showToast('Speicherfehler', 'error');
+        }
+    }
+    
+    // ========================================
+    // PFADE
+    // ========================================
+    
+    async function savePathSettings() {
+        try {
+            await api('/admin/api/config', {
+                method: 'POST',
+                body: JSON.stringify({
+                    'paths.input': document.getElementById('path-input').value,
+                    'paths.temp': document.getElementById('path-temp').value,
+                    'paths.processed': document.getElementById('path-processed').value,
+                    'paths.output': document.getElementById('path-output').value
+                })
+            });
+            showToast('Pfade gespeichert', 'success');
+        } catch (error) {
+            showToast('Speicherfehler', 'error');
+        }
+    }
+    
+    // ========================================
+    // SUCHE
+    // ========================================
+    
+    async function saveSearchSettings() {
+        try {
+            await api('/admin/api/config', {
+                method: 'POST',
+                body: JSON.stringify({
+                    'search.face_threshold': parseFloat(document.getElementById('search-face-threshold').value),
+                    'search.color_threshold': parseInt(document.getElementById('search-color-threshold').value),
+                    'search.max_results': parseInt(document.getElementById('search-max-results').value),
+                    'search.redirect_timer': parseInt(document.getElementById('search-redirect-timer').value)
+                })
+            });
+            showToast('Such-Einstellungen gespeichert', 'success');
+        } catch (error) {
+            showToast('Speicherfehler', 'error');
+        }
+    }
+    
+    // ========================================
+    // LOGS
+    // ========================================
+    
+    async function loadLogs() {
+        try {
+            const data = await api('/admin/api/logs?lines=100');
+            const logBox = document.getElementById('log-box');
+            
+            if (!data.logs || data.logs.length === 0) {
+                logBox.innerHTML = '<div class="log-line">Keine Logs vorhanden</div>';
+                return;
+            }
+            
+            logBox.innerHTML = data.logs.map(line => {
+                let className = 'log-line';
+                if (line.toLowerCase().includes('error')) className += ' error';
+                if (line.toLowerCase().includes('success') || line.includes('✅')) className += ' success';
+                return `<div class="${className}">${line}</div>`;
+            }).join('');
+            
+            logBox.scrollTop = logBox.scrollHeight;
+            
+        } catch (error) {
+            console.error('Logs laden Fehler:', error);
+        }
+    }
+    
+    async function clearLogs() {
+        if (!confirm('Logs wirklich löschen?')) return;
+        
+        try {
+            await api('/admin/api/logs', { method: 'DELETE' });
+            showToast('Logs gelöscht', 'success');
+            loadLogs();
+        } catch (error) {
+            showToast('Löschfehler', 'error');
+        }
+    }
+    
+    // ========================================
+    // SYSTEM
+    // ========================================
+    
+    async function cleanupTemp() {
+        try {
+            const data = await api('/admin/api/system/cleanup', { method: 'POST' });
+            showToast(data.message, 'success');
+        } catch (error) {
+            showToast('Cleanup-Fehler', 'error');
+        }
+    }
+    
+    async function clearDatabase() {
+        if (!confirm('ALLE Daten löschen? Dies kann nicht rückgängig gemacht werden!')) return;
+        
+        await deleteAllImages();
+    }
+    
+    // ========================================
+    // INITIALISIERUNG
+    // ========================================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDashboard();
+    });
+</script>
+{% endblock %}

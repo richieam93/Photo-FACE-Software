@@ -1,0 +1,108 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "debug": true
+  },
+  "paths": {
+    "input": "photos/input",
+    "temp": "photos/temp",
+    "processed": "photos/processed",
+    "output": "photos/output",
+    "models": "models",
+    "data": "data",
+    "logs": "data/logs"
+  },
+  "camera": {
+    "device_id": 1,
+    "width": 1280,
+    "height": 720,
+    "flip_horizontal": true
+  },
+  "processing": {
+    "auto_process": true,
+    "delete_original": false,
+    "jpeg_quality": 85,
+    "watch_interval": 2,
+    "auto_start_watcher": false
+  },
+  "face": {
+    "model": "hog",
+    "upsample": 1,
+    "tolerance": 0.6,
+    "min_face_size": 20
+  },
+  "person": {
+    "enabled": true,
+    "method": "auto",
+    "model_size": "n",
+    "confidence": 0.5,
+    "min_width": 50,
+    "min_height": 100
+  },
+  "clothing": {
+    "enabled": true,
+    "body_ratio": 2.5,
+    "body_width_ratio": 1.5,
+    "num_colors": 3,
+    "analyze_brightness": true,
+    "analyze_patterns": true
+  },
+  "crop": {
+    "enabled": true,
+    "x_percent": 6.963185258536243,
+    "y_percent": 32.22833579986021,
+    "width_percent": 50.56073680536804,
+    "height_percent": 40.93058888221781
+  },
+  "search": {
+    "face_threshold": 0.6,
+    "color_threshold": 50,
+    "max_results": 20
+  },
+  "printers": {
+    "enabled": true,
+    "small": {
+      "name": "",
+      "price": 15,
+      "enabled": true,
+      "paper_size": "A4",
+      "photo_width": 200.0,
+      "page_orientation": "Horizontal",
+      "photo_height": 150.0,
+      "left_margin_photo": 10.0,
+      "top_margin_photo": 15.0,
+      "left_margin_text": 50.0,
+      "top_margin_text": 180.0,
+      "text_rotation_angle": 45,
+      "text_font_name": "Times New Roman",
+      "text_size": 12,
+      "text_color": "#FF0000",
+      "enable_print_date": true
+    },
+    "big": {
+      "name": "",
+      "price": 19,
+      "enabled": true
+    }
+  },
+  "carousel": {
+    "auto_play": true,
+    "interval": 5000,
+    "show_faces": true,
+    "show_persons": true,
+    "show_colors": true
+  },
+  "app": {
+    "name": "Photo Software",
+    "language": "de",
+    "auto_translate": true
+  },
+  "language": {
+    "language": "en",
+    "auto_translate": true,
+    "default_language": "de",
+    "show_language_selector": false,
+    "remember_language": false
+  }
+}

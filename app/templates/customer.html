@@ -1,0 +1,1542 @@
+{% extends "base.html" %}
+
+{% block title %}Foto-Suche - Photo Software{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========================================
+       KARUSSELL STYLES
+       ======================================== */
+    
+    .carousel-section {
+        padding: 50px 0;
+    }
+    
+    .carousel-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .carousel-track {
+        display: flex;
+        transition: transform 0.5s ease;
+    }
+
+    .carousel-slide {
+        min-width: 100%;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+    }
+
+    .carousel-slide.active {
+        pointer-events: auto;
+    }
+
+    .carousel-image-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: calc((100vw - 80px) / var(--images-per-view, 3));
+        min-width: 200px;
+        margin: 0 10px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .carousel-image-wrapper:hover {
+        transform: scale(1.05);
+        z-index: 20;
+    }
+
+    .carousel-image {
+        width: 100%;
+        height: auto;
+        max-height: 700px;
+        object-fit: contain;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .carousel-info {
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 0 0 15px 15px;
+        margin-top: 10px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .carousel-info h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: #ffffff;
+    }
+    
+    .carousel-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: #aaaaaa;
+    }
+    
+    .meta-item .icon {
+        font-size: 18px;
+    }
+    
+    /* Farb-Palette im Karussell */
+    .color-dots {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .color-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Karussell Navigation */
+    .carousel-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: #ffffff;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+    
+    .carousel-nav:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+    
+    .carousel-nav.prev { left: 20px; }
+    .carousel-nav.next { right: 20px; }
+    
+    .carousel-dots {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 20px;
+    }
+    
+    .carousel-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .carousel-dot.active {
+        background: #4ecdc4;
+        transform: scale(1.2);
+    }
+    
+    /* ========================================
+       SUCH-BEREICH
+       ======================================== */
+    
+    .search-section {
+        padding: 40px 0;
+    }
+    
+    .search-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .search-card {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        cursor: pointer;
+    }
+    
+    .search-card:hover {
+        border-color: #4ecdc4;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .search-card.active {
+        border-color: #4ecdc4;
+        background: rgba(78, 205, 196, 0.1);
+    }
+    
+    .search-card .icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+    }
+    
+    .search-card h3 {
+        font-size: 22px;
+        margin-bottom: 10px;
+        color: #ffffff;
+    }
+    
+    .search-card p {
+        color: #aaaaaa;
+        font-size: 14px;
+    }
+    
+    /* ========================================
+       KAMERA-BEREICH
+       ======================================== */
+    
+    .camera-section {
+        display: none;
+        padding: 30px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .camera-section.active {
+        display: block;
+    }
+    
+    .camera-container {
+        position: relative;
+        max-width: 640px;
+        margin: 0 auto;
+    }
+    
+    .camera-video {
+        width: 100%;
+        border-radius: 15px;
+        background: #000000;
+    }
+    
+    .camera-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 250px;
+        border: 3px dashed rgba(78, 205, 196, 0.5);
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        pointer-events: none;
+    }
+    
+    .camera-hint {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        color: #ffffff;
+    }
+    
+    .camera-controls {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .capture-btn {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+        border: 4px solid #ffffff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .capture-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .capture-btn::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50px;
+        height: 50px;
+        background: #ffffff;
+        border-radius: 50%;
+    }
+    
+    /* Aufgenommenes Foto */
+    .captured-photo {
+        display: none;
+        max-width: 400px;
+        margin: 20px auto;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    
+    .captured-photo.show {
+        display: block;
+    }
+    
+    /* ========================================
+       FARB-PALETTE
+       ======================================== */
+    
+    .color-section {
+        display: none;
+        padding: 30px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .color-section.active {
+        display: block;
+    }
+    
+    .color-palette {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 12px;
+        margin: 20px 0;
+    }
+    
+    .color-option {
+        aspect-ratio: 1;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 3px solid transparent;
+        position: relative;
+    }
+    
+    .color-option:hover {
+        transform: scale(1.1);
+    }
+    
+    .color-option.selected {
+        border-color: #ffffff;
+        box-shadow: 0 0 0 3px #4ecdc4;
+    }
+    
+    .color-option.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 30px;
+        color: #ffffff;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+    
+    .color-name {
+        text-align: center;
+        font-size: 12px;
+        margin-top: 5px;
+        color: #aaaaaa;
+    }
+    
+    .selected-colors {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        min-height: 60px;
+    }
+    
+    .selected-color-tag {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+    }
+    
+    .selected-color-preview {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid #ffffff;
+    }
+    
+    .remove-color {
+        cursor: pointer;
+        opacity: 0.7;
+    }
+    
+    .remove-color:hover {
+        opacity: 1;
+    }
+    
+    /* ========================================
+       SUCH-BUTTON
+       ======================================== */
+    
+    .search-action {
+        text-align: center;
+        padding: 30px;
+    }
+    
+    .search-btn {
+        padding: 20px 60px;
+        font-size: 20px;
+    }
+    
+    /* ========================================
+       KARUSSELL HOVER MODAL
+       ======================================== */
+
+    .carousel-hover-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .carousel-hover-modal.active {
+        display: flex;
+    }
+
+    .hover-modal-content {
+        position: relative;
+        max-width: 800px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 30px;
+        animation: modalSlide 0.3s ease;
+    }
+
+    .hover-modal-image {
+        width: 100%;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .hover-modal-image:hover {
+        transform: scale(1.02);
+    }
+
+    .hover-modal-details {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 15px;
+        padding: 25px;
+    }
+
+    .hover-modal-details h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #4ecdc4;
+        word-break: break-all;
+    }
+
+    .hover-modal-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .hover-modal-actions .btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+    }
+
+    .hover-modal-close {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        font-size: 50px;
+        color: #ffffff;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+        z-index: 1001;
+    }
+
+    .hover-modal-close:hover {
+        opacity: 1;
+    }
+
+    /* ========================================
+       IMAGE ENLARGEMENT MODAL
+       ======================================== */
+
+    .image-enlarge-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1100;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .image-enlarge-modal.active {
+        display: flex;
+    }
+
+    .enlarge-modal-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        animation: modalSlide 0.3s ease;
+    }
+
+    .enlarge-modal-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .enlarge-modal-close {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        font-size: 50px;
+        color: #ffffff;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+        z-index: 1101;
+    }
+
+    .enlarge-modal-close:hover {
+        opacity: 1;
+    }
+
+    /* ========================================
+       RESPONSIVE
+       ======================================== */
+
+    @media (max-width: 768px) {
+        .carousel-image {
+            max-height: 300px;
+        }
+
+        .carousel-nav {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+
+        .search-card .icon {
+            font-size: 40px;
+        }
+
+        .camera-overlay {
+            width: 150px;
+            height: 180px;
+        }
+
+        .hover-modal-content {
+            grid-template-columns: 1fr;
+        }
+
+        .hover-modal-details {
+            order: -1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- ========================================
+         KARUSSELL SEKTION
+         ======================================== -->
+    
+    <section class="carousel-section">
+        <div class="carousel-container" id="carousel">
+            <button class="carousel-nav prev" onclick="carouselPrev()">‹</button>
+            <button class="carousel-nav next" onclick="carouselNext()">›</button>
+            
+            <div class="carousel-track" id="carousel-track">
+                <!-- Slides werden dynamisch geladen -->
+                <div class="carousel-slide">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="carousel-dots" id="carousel-dots"></div>
+        </div>
+    </section>
+    
+    <!-- ========================================
+         SUCH-OPTIONEN
+         ======================================== -->
+    
+    <section class="search-section">
+        <h2 class="text-center mb-20">🔍 Finde dein Foto</h2>
+        
+        <div class="search-options">
+            <!-- Gesichtssuche -->
+            <div class="search-card" onclick="selectSearchMode('face'); scrollToSearchSection();" id="search-face">
+                <div class="icon">📷</div>
+                <h3>Gesichtserkennung</h3>
+                <p>Mache ein Selfie und wir finden alle Fotos mit deinem Gesicht</p>
+            </div>
+
+            <!-- Farbsuche -->
+            <div class="search-card" onclick="selectSearchMode('color'); scrollToSearchSection();" id="search-color">
+                <div class="icon">🎨</div>
+                <h3>Kleiderfarben</h3>
+                <p>Wähle die Farben deiner Kleidung und wir finden passende Fotos</p>
+            </div>
+
+            <!-- Kombiniert -->
+            <div class="search-card" onclick="selectSearchMode('combined'); scrollToSearchSection();" id="search-combined">
+                <div class="icon">🔮</div>
+                <h3>Kombinierte Suche</h3>
+                <p>Nutze Gesicht UND Farben für beste Ergebnisse</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- ========================================
+         KAMERA SEKTION
+         ======================================== -->
+    
+    <section class="camera-section" id="camera-section">
+        <h3 class="text-center mb-20">📸 Mache ein Selfie</h3>
+        
+        <div class="camera-container">
+            <video class="camera-video" id="camera-video" autoplay playsinline></video>
+            <div class="camera-overlay"></div>
+            <div class="camera-hint">Positioniere dein Gesicht im Rahmen</div>
+        </div>
+        
+        <div class="camera-controls">
+            <button class="btn btn-secondary" onclick="closeCameraSection()">Abbrechen</button>
+            <button class="capture-btn" onclick="capturePhoto()" id="capture-btn"></button>
+        </div>
+        
+        <img class="captured-photo" id="captured-photo" alt="Aufgenommenes Foto">
+        
+        <div id="face-status" class="text-center mt-20" style="display: none;">
+            <p id="face-status-text"></p>
+        </div>
+    </section>
+    
+    <!-- ========================================
+         FARB-PALETTE SEKTION
+         ======================================== -->
+    
+    <section class="color-section" id="color-section">
+        <h3 class="text-center mb-20">🎨 Wähle deine Kleiderfarben</h3>
+        
+        <p class="text-center" style="color: #aaaaaa; margin-bottom: 20px;">
+            Wähle bis zu 3 Farben, die deiner Kleidung am nächsten kommen
+        </p>
+        
+        <div class="color-palette" id="color-palette">
+            <!-- Farben werden dynamisch geladen -->
+        </div>
+        
+        <h4>Ausgewählte Farben:</h4>
+        <div class="selected-colors" id="selected-colors">
+            <span style="color: #888;">Noch keine Farben ausgewählt</span>
+        </div>
+    </section>
+    
+    <!-- ========================================
+         SUCH-BUTTON
+         ======================================== -->
+
+    <section class="search-action" id="search-action" style="display: none;">
+        <button class="btn btn-primary btn-lg search-btn" onclick="startSearch()">
+            🔍 Suche starten
+        </button>
+    </section>
+
+</div>
+
+<!-- ========================================
+     KARUSSELL HOVER MODAL
+     ======================================== -->
+
+<div class="carousel-hover-modal" id="carousel-hover-modal" onclick="closeHoverModalOnBackground(event)">
+    <span class="hover-modal-close" onclick="closeHoverModal()">×</span>
+    <div class="hover-modal-content">
+        <div>
+            <img class="hover-modal-image" id="hover-modal-image" src="" onclick="openEnlargeModal()" alt="">
+        </div>
+        <div class="hover-modal-details">
+            <h2 id="hover-modal-filename">Bildname.jpg</h2>
+
+            <div class="detail-row">
+                <span class="detail-label">📅 Aufnahmezeit</span>
+                <span class="detail-value" id="hover-modal-time">-</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">👤 Gesichter</span>
+                <span class="detail-value" id="hover-modal-faces">0</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">🚶 Personen</span>
+                <span class="detail-value" id="hover-modal-persons">0</span>
+            </div>
+
+            <div class="hover-modal-actions">
+                <button class="btn btn-info" onclick="openEnlargeModal()">
+                    🖼️ Bild grossansicht
+                </button>
+                <button class="btn btn-warning" onclick="openInGallery()">
+                    🖼️ Galerie
+                </button>
+                <button class="btn btn-primary" onclick="searchByColors()">
+                    🎨 Nach Farben suchen
+                </button>
+                <button class="btn btn-secondary" onclick="searchByFaces()">
+                    👤 Nach Gesichtern suchen
+                </button>
+                <button class="btn btn-success" onclick="printImage()">
+                    🖨️ Foto drucken
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================
+     IMAGE ENLARGEMENT MODAL
+     ======================================== -->
+
+<div class="image-enlarge-modal" id="image-enlarge-modal" onclick="closeEnlargeModalOnBackground(event)">
+    <span class="enlarge-modal-close" onclick="closeEnlargeModal()">×</span>
+    <div class="enlarge-modal-content">
+        <img class="enlarge-modal-image" id="enlarge-modal-image" src="" alt="">
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ========================================
+    // VARIABLEN
+    // ========================================
+    
+    let carouselImages = [];
+    let currentSlide = 0;
+    let carouselInterval = null;
+    let carouselUpdateInterval = null;
+    let userHasInteracted = false;
+    
+    let searchMode = null;  // 'face', 'color', 'combined'
+    let capturedImageData = null;
+    let selectedColors = [];
+    
+    let cameraStream = null;
+    
+    const MAX_COLORS = 3;
+    
+    // ========================================
+    // KARUSSELL
+    // ========================================
+
+    let displaySettings = {};
+    let carouselSettings = {};
+    let settingsUpdateInterval = null;
+
+    async function loadDisplaySettings() {
+        try {
+            const response = await api('/admin/api/settings/default/display');
+            if (response.success && response.settings) {
+                displaySettings = response.settings;
+            } else {
+                displaySettings = { carousel_original: true };
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Display-Einstellungen:', error);
+            displaySettings = { carousel_original: true };
+        }
+    }
+
+    async function loadCarouselSettings() {
+        try {
+            const response = await api('/admin/api/settings/default/carousel');
+            if (response.success && response.settings) {
+                const newSettings = response.settings;
+
+                // Prüfen ob sich etwas geändert hat
+                const settingsChanged = JSON.stringify(carouselSettings) !== JSON.stringify(newSettings);
+
+                carouselSettings = newSettings;
+
+                // Wenn sich die Einstellungen geändert haben, Karussell neu rendern
+                if (settingsChanged && carouselImages.length > 0) {
+                    console.log('Karussell-Einstellungen aktualisiert:', carouselSettings);
+                    renderCarousel();
+                    resetAutoPlay(); // Auto-Play mit neuen Intervallen neu starten
+                }
+            } else {
+                carouselSettings = { images_per_view: 3, auto_play: true, interval: 5000, max_images: 50 };
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Carousel-Einstellungen:', error);
+            carouselSettings = { images_per_view: 3, auto_play: true, interval: 5000, max_images: 50 };
+        }
+
+        // CSS Variable für Bilder pro Ansicht setzen
+        document.documentElement.style.setProperty('--images-per-view', carouselSettings.images_per_view || 3);
+    }
+
+    // Separate Funktion für regelmäßiges Laden der Einstellungen
+    function startSettingsAutoUpdate() {
+        // Sofort laden
+        loadCarouselSettings();
+
+        // Alle 5 Sekunden Einstellungen prüfen
+        settingsUpdateInterval = setInterval(loadCarouselSettings, 5000);
+    }
+
+    function stopSettingsAutoUpdate() {
+        if (settingsUpdateInterval) {
+            clearInterval(settingsUpdateInterval);
+            settingsUpdateInterval = null;
+        }
+    }
+
+    async function loadCarouselImages() {
+        try {
+            // Settings ebenfalls neu laden bei jeder Aktualisierung
+            await loadCarouselSettings();
+
+            const data = await api('/customer/api/carousel/images');
+            const newImages = data.images || [];
+
+            // Prüfen ob sich etwas geändert hat
+            const hasChanged = carouselImages.length !== newImages.length ||
+                              JSON.stringify(carouselImages.map(img => img.id)) !== JSON.stringify(newImages.map(img => img.id));
+
+            if (hasChanged) {
+                carouselImages = newImages;
+
+                if (carouselImages.length === 0) {
+                    showEmptyCarousel();
+                    return;
+                }
+
+                // Bilder sortieren basierend auf Position-Einstellung
+                const position = carouselSettings.newest_image_position || 'left';
+                if (position === 'left') {
+                    // Neueste Bilder links (Standard)
+                    carouselImages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                } else {
+                    // Neueste Bilder rechts (älteste zuerst)
+                    carouselImages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                }
+
+                renderCarousel();
+
+                // Wenn der Benutzer nicht interagiert hat, automatisch zur ersten Slide gehen (mit neuesten Bildern)
+                if (!userHasInteracted) {
+                    currentSlide = 0;
+                    updateCarousel();
+                }
+
+                // Falls noch kein Auto-Play läuft, starten
+                if (!carouselInterval) {
+                    startAutoPlay();
+                }
+
+                console.log('Karussell aktualisiert mit', carouselImages.length, 'Bildern');
+            }
+
+        } catch (error) {
+            console.error('Fehler beim Laden der Bilder:', error);
+            showToast('Fehler beim Laden der Bilder', 'error');
+        }
+    }
+
+    // Automatische Aktualisierung starten
+    function startCarouselAutoUpdate() {
+        // Sofort laden
+        loadCarouselImages();
+
+        // Aktualisierungsintervall aus Settings verwenden (in Sekunden)
+        const updateInterval = (carouselSettings.update_interval || 10) * 1000;
+        carouselUpdateInterval = setInterval(loadCarouselImages, updateInterval);
+    }
+
+    // Automatische Aktualisierung stoppen
+    function stopCarouselAutoUpdate() {
+        if (carouselUpdateInterval) {
+            clearInterval(carouselUpdateInterval);
+            carouselUpdateInterval = null;
+        }
+    }
+    
+    function renderCarousel() {
+        const track = document.getElementById('carousel-track');
+        const dots = document.getElementById('carousel-dots');
+        const imagesPerView = carouselSettings.images_per_view || 3;
+
+        // Prüfen ob Originalbilder aktiviert sind
+        const useOriginal = displaySettings.carousel_original !== false;
+        const imageParam = useOriginal ? '?original=true' : '';
+
+        // Bilder in Gruppen aufteilen
+        const slides = [];
+        for (let i = 0; i < carouselImages.length; i += imagesPerView) {
+            slides.push(carouselImages.slice(i, i + imagesPerView));
+        }
+
+        track.innerHTML = slides.map((slideImages, slideIndex) => `
+            <div class="carousel-slide">
+                ${slideImages.map(img => `
+                    <div class="carousel-image-wrapper" data-image-id="${img.id}">
+                        <img
+                            class="carousel-image"
+                            src="/customer/api/image/${img.id}/file${imageParam}"
+                            alt="${img.filename}"
+                            loading="lazy"
+                        >
+                        <div class="carousel-info">
+                            <h3>📷 ${img.filename}</h3>
+                            <div class="carousel-meta">
+                                <div class="meta-item">
+                                    <span class="icon">🕐</span>
+                                    <span>${formatTime(img.timestamp)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `).join('');
+
+        // Dots für Slides
+        dots.innerHTML = slides.map((_, index) => `
+            <div class="carousel-dot ${index === 0 ? 'active' : ''}" onclick="goToSlide(${index})"></div>
+        `).join('');
+    }
+    
+    function renderColorDots(colorData) {
+        if (!colorData || colorData.length === 0) return '';
+        
+        const colors = [];
+        colorData.forEach(cd => {
+            if (cd.colors) {
+                cd.colors.forEach(c => colors.push(c.hex));
+            }
+        });
+        
+        if (colors.length === 0) return '';
+        
+        const dotsHtml = colors.slice(0, 5).map(hex => 
+            `<div class="color-dot" style="background: ${hex}"></div>`
+        ).join('');
+        
+        return `
+            <div class="meta-item">
+                <span class="icon">🎨</span>
+                <div class="color-dots">${dotsHtml}</div>
+            </div>
+        `;
+    }
+    
+    function showEmptyCarousel() {
+        const track = document.getElementById('carousel-track');
+        track.innerHTML = `
+            <div class="carousel-slide">
+                <div class="text-center" style="padding: 60px;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">📷</div>
+                    <h3>Noch keine Bilder vorhanden</h3>
+                    <p style="color: #888;">Bilder werden hier angezeigt sobald sie verarbeitet wurden</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    function goToSlide(index) {
+        userHasInteracted = true;
+        currentSlide = index;
+        updateCarousel();
+    }
+
+    function carouselPrev() {
+        userHasInteracted = true;
+        const imagesPerView = carouselSettings.images_per_view || 3;
+        const totalSlides = Math.ceil(carouselImages.length / imagesPerView);
+        currentSlide = currentSlide === 0 ? totalSlides - 1 : currentSlide - 1;
+        updateCarousel();
+        resetAutoPlay();
+    }
+
+    function carouselNext() {
+        userHasInteracted = true;
+        const imagesPerView = carouselSettings.images_per_view || 3;
+        const totalSlides = Math.ceil(carouselImages.length / imagesPerView);
+        currentSlide = currentSlide === totalSlides - 1 ? 0 : currentSlide + 1;
+        updateCarousel();
+        resetAutoPlay();
+    }
+    
+    function updateCarousel() {
+        const track = document.getElementById('carousel-track');
+        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+        // Slides aktiv/inaktiv setzen
+        document.querySelectorAll('.carousel-slide').forEach((slide, index) => {
+            slide.classList.toggle('active', index === currentSlide);
+        });
+
+        document.querySelectorAll('.carousel-dot').forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentSlide);
+        });
+    }
+    
+    function startAutoPlay() {
+        const interval = carouselSettings.interval || 5000;
+        const direction = carouselSettings.slide_direction || 'forward';
+
+        if (carouselSettings.auto_play !== false) {
+            // Verwende die eingestellte Richtung
+            const slideFunction = direction === 'backward' ? carouselPrev : carouselNext;
+            carouselInterval = setInterval(slideFunction, interval);
+        }
+    }
+    
+    function resetAutoPlay() {
+        if (carouselInterval) {
+            clearInterval(carouselInterval);
+            startAutoPlay();
+        }
+    }
+
+    // ========================================
+    // KARUSSELL HOVER MODAL
+    // ========================================
+
+    let currentHoverImage = null;
+
+    function initClickListeners() {
+        // Event-Delegation für Click-Events
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('carousel-image')) {
+                const wrapper = e.target.closest('.carousel-image-wrapper');
+                if (wrapper && wrapper.dataset.imageId) {
+                    openHoverModal(wrapper.dataset.imageId);
+                }
+            }
+        });
+    }
+
+    function openHoverModal(imageId) {
+        currentHoverImage = imageId;
+
+        // Bild-Daten finden
+        const image = carouselImages.find(img => img.id === imageId);
+        if (!image) return;
+
+        // Modal füllen
+        const useOriginal = displaySettings.carousel_original !== false;
+        const imageParam = useOriginal ? '?original=true' : '';
+
+        document.getElementById('hover-modal-image').src = `/customer/api/image/${imageId}/file${imageParam}`;
+        document.getElementById('hover-modal-filename').textContent = image.filename;
+        document.getElementById('hover-modal-time').textContent = formatTime(image.timestamp);
+        document.getElementById('hover-modal-faces').textContent = image.face_count || 0;
+        document.getElementById('hover-modal-persons').textContent = image.person_count || 0;
+
+        // Modal anzeigen
+        document.getElementById('carousel-hover-modal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeHoverModal() {
+        document.getElementById('carousel-hover-modal').classList.remove('active');
+        document.body.style.overflow = '';
+        currentHoverImage = null;
+    }
+
+    function closeHoverModalOnBackground(event) {
+        if (event.target.id === 'carousel-hover-modal') {
+            closeHoverModal();
+        }
+    }
+
+    // ========================================
+    // QUICK ACTIONS
+    // ========================================
+
+    async function searchByColors() {
+        if (!currentHoverImage) return;
+
+        try {
+            // Farben des Bildes laden
+            const response = await api(`/gallery/api/image/${currentHoverImage}`);
+            const imageData = response.image;
+
+            if (imageData.clothing_colors && imageData.clothing_colors.length > 0) {
+                // Erste Farbe verwenden
+                const firstColorGroup = imageData.clothing_colors[0];
+                if (firstColorGroup.colors && firstColorGroup.colors.length > 0) {
+                    const color = firstColorGroup.colors[0];
+
+                    // Such-Daten speichern
+                    const searchData = {
+                        mode: 'color',
+                        colors: [{ rgb: color.rgb }]
+                    };
+
+                    sessionStorage.setItem('searchData', JSON.stringify(searchData));
+
+                    // Zur Suchseite navigieren
+                    window.location.href = '/customer/search';
+                }
+            } else {
+                showToast('Keine Farben in diesem Bild gefunden', 'info');
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Farben:', error);
+            showToast('Fehler beim Laden der Bilddaten', 'error');
+        }
+    }
+
+    async function searchByFaces() {
+        if (!currentHoverImage) return;
+
+        try {
+            // Bild-URL für Gesichtssuche vorbereiten
+            const imageUrl = `/customer/api/image/${currentHoverImage}/file?original=true`;
+
+            // Such-Daten für Gesichtssuche vorbereiten
+            const searchData = {
+                mode: 'face',
+                image: null, // Wird später geladen
+                imageUrl: imageUrl,
+                imageId: currentHoverImage
+            };
+
+            // Daten speichern und zur Suchseite navigieren
+            sessionStorage.setItem('searchData', JSON.stringify(searchData));
+            window.location.href = '/customer/search';
+
+        } catch (error) {
+            console.error('Fehler beim Vorbereiten der Gesichtssuche:', error);
+            showToast('Fehler beim Vorbereiten der Suche', 'error');
+        }
+    }
+
+    async function printImage() {
+        if (!currentHoverImage) return;
+
+        // Druck-Modal öffnen mit diesem Bild
+        window.location.href = `/customer/search?print=${currentHoverImage}`;
+    }
+
+    function openInGallery() {
+        if (!currentHoverImage) return;
+
+        // Zur Galerie navigieren mit Bild-ID als Parameter
+        window.location.href = `/gallery?image=${currentHoverImage}`;
+    }
+
+    // ========================================
+    // IMAGE ENLARGEMENT MODAL
+    // ========================================
+
+    function openEnlargeModal() {
+        if (!currentHoverImage) return;
+
+        // Bild-URL setzen
+        const useOriginal = displaySettings.carousel_original !== false;
+        const imageParam = useOriginal ? '?original=true' : '';
+
+        document.getElementById('enlarge-modal-image').src = `/customer/api/image/${currentHoverImage}/file${imageParam}`;
+
+        // Modal anzeigen
+        document.getElementById('image-enlarge-modal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEnlargeModal() {
+        document.getElementById('image-enlarge-modal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function closeEnlargeModalOnBackground(event) {
+        if (event.target.id === 'image-enlarge-modal') {
+            closeEnlargeModal();
+        }
+    }
+
+
+    
+    // ========================================
+    // SMOOTH SCROLLING
+    // ========================================
+
+    function scrollToSearchSection() {
+        const searchSection = document.querySelector('.search-section');
+        searchSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+
+    // ========================================
+    // SUCH-MODUS
+    // ========================================
+
+    function selectSearchMode(mode) {
+        searchMode = mode;
+
+        // Cards aktualisieren
+        document.querySelectorAll('.search-card').forEach(card => {
+            card.classList.remove('active');
+        });
+        document.getElementById(`search-${mode}`).classList.add('active');
+
+        // Sections anzeigen/verstecken
+        const cameraSection = document.getElementById('camera-section');
+        const colorSection = document.getElementById('color-section');
+        const searchAction = document.getElementById('search-action');
+
+        cameraSection.classList.remove('active');
+        colorSection.classList.remove('active');
+
+        if (mode === 'face') {
+            startCamera();
+            cameraSection.classList.add('active');
+        } else if (mode === 'color') {
+            loadColorPalette();
+            colorSection.classList.add('active');
+        } else if (mode === 'combined') {
+            startCamera();
+            cameraSection.classList.add('active');
+            // Für kombinierte Suche werden Farben automatisch analysiert
+        }
+
+        searchAction.style.display = 'block';
+    }
+    
+    // ========================================
+    // KAMERA
+    // ========================================
+    
+    async function startCamera() {
+        const video = document.getElementById('camera-video');
+        
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'user'
+                }
+            });
+            
+            video.srcObject = cameraStream;
+            
+        } catch (error) {
+            console.error('Kamera-Fehler:', error);
+            showToast('Kamera konnte nicht gestartet werden', 'error');
+        }
+    }
+    
+    function stopCamera() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+    }
+    
+    function capturePhoto() {
+        const video = document.getElementById('camera-video');
+        const photo = document.getElementById('captured-photo');
+        const status = document.getElementById('face-status');
+        
+        // Canvas erstellen
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Spiegeln
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0);
+        
+        // Base64 speichern
+        capturedImageData = canvas.toDataURL('image/jpeg', 0.9);
+        
+        // Vorschau anzeigen
+        photo.src = capturedImageData;
+        photo.classList.add('show');
+        
+        // Status anzeigen
+        status.style.display = 'block';
+        document.getElementById('face-status-text').innerHTML = 
+            '<span style="color: #4ecdc4;">✓ Foto aufgenommen!</span> Starte Suche wenn bereit.';
+        
+        showToast('Foto aufgenommen!', 'success');
+    }
+    
+    function closeCameraSection() {
+        stopCamera();
+        document.getElementById('camera-section').classList.remove('active');
+        document.getElementById('captured-photo').classList.remove('show');
+        document.getElementById('face-status').style.display = 'none';
+        capturedImageData = null;
+        
+        if (searchMode === 'face') {
+            document.getElementById('search-action').style.display = 'none';
+        }
+    }
+    
+    // ========================================
+    // FARB-PALETTE
+    // ========================================
+
+    async function loadColorPalette() {
+        try {
+            const data = await api('/customer/api/colors/palette');
+            // Erweitere die Farbpalette um mehr Optionen
+            const extendedColors = [
+                ...data.colors,
+                // Zusätzliche Farben hinzufügen
+                { name: 'Türkis', hex: '#00CED1', rgb: [0, 206, 209] },
+                { name: 'Lila', hex: '#9370DB', rgb: [147, 112, 219] },
+                { name: 'Koralle', hex: '#FF7F50', rgb: [255, 127, 80] },
+                { name: 'Gold', hex: '#FFD700', rgb: [255, 215, 0] },
+                { name: 'Silber', hex: '#C0C0C0', rgb: [192, 192, 192] },
+                { name: 'Beige', hex: '#F5F5DC', rgb: [245, 245, 220] },
+                { name: 'Khaki', hex: '#F0E68C', rgb: [240, 230, 140] },
+                { name: 'Lavendel', hex: '#E6E6FA', rgb: [230, 230, 250] },
+                { name: 'Salmon', hex: '#FA8072', rgb: [250, 128, 114] },
+                { name: 'Aquamarin', hex: '#7FFFD4', rgb: [127, 255, 212] },
+                { name: 'Indigo', hex: '#4B0082', rgb: [75, 0, 130] },
+                { name: 'Tomato', hex: '#FF6347', rgb: [255, 99, 71] },
+                { name: 'Olivgrün', hex: '#808000', rgb: [128, 128, 0] },
+                { name: 'Sienna', hex: '#A0522D', rgb: [160, 82, 45] },
+                { name: 'Steelblue', hex: '#4682B4', rgb: [70, 130, 180] },
+                { name: 'Darkorchid', hex: '#9932CC', rgb: [153, 50, 204] },
+                { name: 'Burlywood', hex: '#DEB887', rgb: [222, 184, 135] },
+                { name: 'Lightcyan', hex: '#E0FFFF', rgb: [224, 255, 255] },
+                { name: 'Darkslategray', hex: '#2F4F4F', rgb: [47, 79, 79] },
+                { name: 'Mediumvioletred', hex: '#C71585', rgb: [199, 21, 133] }
+            ];
+            renderColorPalette(extendedColors);
+        } catch (error) {
+            console.error('Fehler beim Laden der Farben:', error);
+        }
+    }
+    
+    function renderColorPalette(colors) {
+        const palette = document.getElementById('color-palette');
+        
+        palette.innerHTML = colors.map(color => `
+            <div class="color-option-wrapper">
+                <div 
+                    class="color-option" 
+                    style="background: ${color.hex};"
+                    data-color='${JSON.stringify(color)}'
+                    onclick="toggleColor(this)"
+                ></div>
+                <div class="color-name">${color.name}</div>
+            </div>
+        `).join('');
+    }
+    
+    function toggleColor(element) {
+        const color = JSON.parse(element.dataset.color);
+        const index = selectedColors.findIndex(c => c.hex === color.hex);
+        
+        if (index > -1) {
+            // Entfernen
+            selectedColors.splice(index, 1);
+            element.classList.remove('selected');
+        } else {
+            // Hinzufügen (max 3)
+            if (selectedColors.length >= MAX_COLORS) {
+                showToast(`Maximal ${MAX_COLORS} Farben auswählbar`, 'info');
+                return;
+            }
+            selectedColors.push(color);
+            element.classList.add('selected');
+        }
+        
+        updateSelectedColors();
+    }
+    
+    function updateSelectedColors() {
+        const container = document.getElementById('selected-colors');
+        
+        if (selectedColors.length === 0) {
+            container.innerHTML = '<span style="color: #888;">Noch keine Farben ausgewählt</span>';
+            return;
+        }
+        
+        container.innerHTML = selectedColors.map((color, index) => `
+            <div class="selected-color-tag">
+                <div class="selected-color-preview" style="background: ${color.hex};"></div>
+                <span>${color.name}</span>
+                <span class="remove-color" onclick="removeColor(${index})">✕</span>
+            </div>
+        `).join('');
+    }
+    
+    function removeColor(index) {
+        const color = selectedColors[index];
+        selectedColors.splice(index, 1);
+        
+        // Visual update
+        document.querySelectorAll('.color-option').forEach(el => {
+            const c = JSON.parse(el.dataset.color);
+            if (c.hex === color.hex) {
+                el.classList.remove('selected');
+            }
+        });
+        
+        updateSelectedColors();
+    }
+    
+    // ========================================
+    // SUCHE STARTEN
+    // ========================================
+
+    async function startSearch() {
+        // Validierung
+        if (searchMode === 'face' && !capturedImageData) {
+            showToast('Bitte zuerst ein Foto aufnehmen', 'error');
+            return;
+        }
+
+        if (searchMode === 'color' && selectedColors.length === 0) {
+            showToast('Bitte mindestens eine Farbe auswählen', 'error');
+            return;
+        }
+
+        if (searchMode === 'combined' && !capturedImageData) {
+            showToast('Bitte zuerst ein Foto aufnehmen', 'error');
+            return;
+        }
+
+        // Loading
+        showToast('Suche wird gestartet...', 'info');
+
+        let searchColors = selectedColors.map(c => ({ rgb: c.rgb }));
+
+        // Für kombinierte Suche: Farben aus dem Foto analysieren
+        if (searchMode === 'combined' && capturedImageData) {
+            try {
+                showToast('Analysiere Kleiderfarben...', 'info');
+
+                const response = await api('/customer/api/analyze/colors', {
+                    method: 'POST',
+                    body: JSON.stringify({ image: capturedImageData })
+                });
+
+                if (response.success && response.colors && response.colors.length > 0) {
+                    searchColors = response.colors.map(c => ({ rgb: c.rgb }));
+                    showToast(`✓ ${searchColors.length} Farben analysiert`, 'success');
+                } else {
+                    showToast('Farbanalyse fehlgeschlagen, verwende Standardsuche', 'warning');
+                }
+            } catch (error) {
+                console.error('Farbanalyse Fehler:', error);
+                showToast('Farbanalyse fehlgeschlagen, verwende Standardsuche', 'warning');
+            }
+        }
+
+        // Such-Daten speichern
+        const searchData = {
+            mode: searchMode,
+            image: capturedImageData,
+            colors: searchColors
+        };
+
+        sessionStorage.setItem('searchData', JSON.stringify(searchData));
+
+        // Zur Ergebnisseite navigieren
+        window.location.href = '/customer/search';
+    }
+    
+    // ========================================
+    // INITIALISIERUNG
+    // ========================================
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadDisplaySettings();
+        await loadCarouselSettings();
+        startSettingsAutoUpdate(); // Einstellungen alle 5 Sekunden prüfen
+        startCarouselAutoUpdate();
+        initClickListeners();
+    });
+
+    // Keyboard Navigation für Modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeEnlargeModal();
+            closeHoverModal();
+        }
+    });
+
+    // Aufräumen beim Verlassen
+    window.addEventListener('beforeunload', () => {
+        stopCamera();
+        stopSettingsAutoUpdate();
+        stopCarouselAutoUpdate();
+    });
+</script>
+{% endblock %}

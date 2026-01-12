@@ -1,0 +1,83 @@
+# ========================================================================
+# PHOTO SOFTWARE - PYTHON DEPENDENCIES
+# ========================================================================
+
+# ----------------------------------------
+# Web Framework
+# ----------------------------------------
+pip install setuptools
+pip install fastapi
+pip install uvicorn
+pip install python-multipart
+pip install jinja2
+
+# ----------------------------------------
+# Gesichtserkennung
+# ----------------------------------------
+pip install face-recognition
+pip install face-recognition-models
+pip install dlib
+
+# ----------------------------------------
+# Computer Vision
+# ----------------------------------------
+pip install opencv-python
+pip install opencv-contrib-python
+pip install Pillow
+
+# ----------------------------------------
+# YOLO / Object Detection
+# ----------------------------------------
+pip install ultralytics
+pip install torch
+pip install torchvision
+
+# ----------------------------------------
+# Machine Learning / Data Science
+# ----------------------------------------
+pip install numpy
+pip install scikit-learn
+pip install scipy
+
+# ----------------------------------------
+# Dateisystem-Überwachung
+# ----------------------------------------
+pip install watchdog
+
+# ----------------------------------------
+# Bildverarbeitung
+# ----------------------------------------
+pip install imageio
+pip install scikit-image
+
+# ----------------------------------------
+# Utilities
+# ----------------------------------------
+pip install python-dateutil
+pip install pytz
+
+# ----------------------------------------
+# Windows-spezifisch (Drucker)
+# ----------------------------------------
+pip install pywin32
+
+# ----------------------------------------
+# Logging & Debugging
+# ----------------------------------------
+pip install colorlog
+pip install python-json-logger
+
+# ----------------------------------------
+# Optional: Performance
+# ----------------------------------------
+# pip install numba 
+# pip install orjson
+
+# ----------------------------------------
+# Development (optional)
+# ----------------------------------------
+# pytest==7.4.3
+# pytest-asyncio==0.21.1
+# black==23.11.0
+# flake8==6.1.0
+# mypy==1.7.1

@@ -1,0 +1,6 @@
+cd :\Users\Richi\Desktop\Photo Tony software\Fotosoftware-getrennt
+python -m venv venv
+
+venv\Scripts\activate
+
+python run.py

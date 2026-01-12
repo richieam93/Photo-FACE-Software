@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Photo Software{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Haupt-Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- Zusätzliche Styles -->
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* ========================================
+           BASIS STYLES (falls CSS nicht lädt)
+           ======================================== */
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4ecdc4;
+            text-decoration: none;
+        }
+        
+        .header .logo:hover {
+            color: #45b7aa;
+        }
+        
+        .header nav {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .header nav a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .header nav a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .header nav a.active {
+            background: #4ecdc4;
+            color: #1a1a2e;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: #ffffff;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #ffffff;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+            color: #ffffff;
+        }
+        
+        .btn-lg {
+            padding: 16px 32px;
+            font-size: 16px;
+        }
+        
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h2, .card h3 {
+            color: #4ecdc4;
+            margin-bottom: 15px;
+        }
+        
+        /* Inputs */
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .toast {
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: #ffffff;
+            font-weight: 500;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+        }
+        
+        .toast.error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+        }
+        
+        .toast.info {
+            background: linear-gradient(135deg, #339af0, #228be6);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+        
+        /* Grid */
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        
+        @media (max-width: 1024px) {
+            .grid-4 { grid-template-columns: repeat(2, 1fr); }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 640px) {
+            .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+            
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        /* Google Translate Widget Styles */
+        body {
+            top: 0px !important;
+        }
+
+        .goog-logo-link {
+            display:none !important;
+        }
+
+        .goog-te-gadget {
+            font-size: 0 !important;
+            color: transparent !important;
+        }
+
+        .goog-te-gadget-simple {
+            background-color: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        .goog-te-menu-value span {
+            display: none !important;
+        }
+
+        .goog-te-menu-value:before {
+            content: "🌐" !important;
+            font-size: 24px !important;
+        }
+
+        /* Hide Google Translate Banner */
+        .goog-te-banner-frame.skiptranslate {
+            display: none !important;
+        }
+
+        .goog-te-banner-frame {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        .goog-te-banner {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        iframe.goog-te-banner-frame {
+            display: none !important;
+        }
+
+        .skiptranslate {
+            font-size: 12px !important;
+        }
+
+        /* Additional banner hiding */
+        div.skiptranslate > iframe {
+            display: none !important;
+        }
+
+        div.skiptranslate {
+            display: none !important;
+        }
+
+        /* Floating Language Button */
+        .floating-language-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.8);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 16px;
+            font-size: 20px;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+        }
+
+        .floating-language-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .floating-language-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mt-20 { margin-top: 20px; }
+        .mb-20 { margin-bottom: 20px; }
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-center { display: flex; justify-content: center; align-items: center; }
+        .gap-10 { gap: 10px; }
+        .gap-20 { gap: 20px; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <a href="/" class="logo">📷 Photo Software</a>
+        <nav>
+            <a href="/customer/" class="{% if request.url.path.startswith('/customer') %}active{% endif %}">
+                🎠 Karussell
+            </a>
+            <a href="/gallery/" class="{% if request.url.path.startswith('/gallery') %}active{% endif %}">
+                🖼️ Galerie
+            </a>
+            <a href="/admin/" class="{% if request.url.path.startswith('/admin') %}active{% endif %}">
+                ⚙️ Admin
+            </a>
+            <div id="google_translate_element" style="display:inline-block;"></div>
+        </nav>
+    </header>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Floating Language Switcher (Bottom Right) -->
+    <button class="floating-language-button" onclick="openLanguageMenu()">
+        🌐
+    </button>
+    
+    <!-- Hauptinhalt -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    {% block footer %}{% endblock %}
+    
+    <!-- Haupt-JavaScript -->
+    <script src="/static/js/app.js"></script>
+
+    <!-- Google Translate Widget Script -->
+    <script>
+    function googleTranslateElementInit() {
+        // Header language switcher
+        new google.translate.TranslateElement({
+            pageLanguage: 'auto',
+            includedLanguages: 'en,de,fr,es,it',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+        }, 'google_translate_element');
+
+        // Floating language switcher (bottom right)
+        new google.translate.TranslateElement({
+            pageLanguage: 'auto',
+            includedLanguages: 'en,de,fr,es,it',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+        }, 'google_translate_element_mobile');
+    }
+
+    // Function to hide Google Translate banner
+    function hideGoogleTranslateBanner() {
+        // Hide banner immediately
+        const bannerFrame = document.querySelector('.goog-te-banner-frame');
+        if (bannerFrame) {
+            bannerFrame.style.display = 'none';
+            bannerFrame.style.visibility = 'hidden';
+        }
+
+        // Hide any iframes that might be the banner
+        const iframes = document.querySelectorAll('iframe.goog-te-banner-frame');
+        iframes.forEach(iframe => {
+            iframe.style.display = 'none';
+        });
+
+        // Hide skiptranslate divs
+        const skipTranslateDivs = document.querySelectorAll('div.skiptranslate');
+        skipTranslateDivs.forEach(div => {
+            div.style.display = 'none';
+        });
+
+        // Reset body top position
+        document.body.style.top = '0px';
+
+        // Continue checking for a short time in case banner loads later
+        setTimeout(hideGoogleTranslateBanner, 1000);
+        setTimeout(hideGoogleTranslateBanner, 3000);
+    }
+
+    // Hide banner when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideGoogleTranslateBanner);
+    } else {
+        hideGoogleTranslateBanner();
+    }
+
+    // Function to open language menu from header widget
+    function openLanguageMenu() {
+        // Find the Google Translate widget button in the header
+        const translateElement = document.getElementById('google_translate_element');
+        if (translateElement) {
+            // Find the clickable element within the widget
+            const gadget = translateElement.querySelector('.goog-te-gadget-simple');
+            if (gadget) {
+                // Trigger click on the widget
+                gadget.click();
+            } else {
+                // Fallback: try to find any clickable element
+                const clickableElement = translateElement.querySelector('a, button, [onclick], .goog-te-menu-value');
+                if (clickableElement) {
+                    clickableElement.click();
+                }
+            }
+        }
+    }
+
+    // Also hide banner after Google Translate loads
+    window.addEventListener('load', function() {
+        setTimeout(hideGoogleTranslateBanner, 500);
+        setTimeout(hideGoogleTranslateBanner, 2000);
+    });
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <!-- Basis-Funktionen -->
+    <script>
+        // Toast Notification
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+        
+        // API Helper
+        async function api(endpoint, options = {}) {
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errorMsg = data.detail || data.message || data.error || 'API Fehler';
+                    throw new Error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+        
+        // Format Timestamp
+        function formatTime(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            return date.toLocaleString('de-CH', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+    
+    <!-- Zusätzliche Scripts -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

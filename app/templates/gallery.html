@@ -1,0 +1,1105 @@
+{% extends "base.html" %}
+
+{% block title %}Galerie - Photo Software{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========================================
+       GALERIE STYLES
+       ======================================== */
+    
+    .gallery-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+    }
+    
+    .gallery-title {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .gallery-title h1 {
+        font-size: 28px;
+        color: #ffffff;
+    }
+    
+    .gallery-stats {
+        display: flex;
+        gap: 20px;
+    }
+    
+    .stat-badge {
+        padding: 8px 16px;
+        background: rgba(78, 205, 196, 0.2);
+        border-radius: 20px;
+        font-size: 14px;
+        color: #4ecdc4;
+    }
+    
+    /* Such-Leiste */
+    .search-bar {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .search-input-wrapper input {
+        padding-left: 45px;
+    }
+
+    .search-input-wrapper .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        opacity: 0.5;
+    }
+
+    .filter-select {
+        min-width: 150px;
+    }
+
+    /* Zeit-Suche */
+    .time-search-section {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+    }
+
+    .time-search-section h4 {
+        color: #ffffff;
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 10px;
+    }
+
+    .time-slot {
+        padding: 10px 15px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid transparent;
+        border-radius: 10px;
+        color: #ffffff;
+        cursor: pointer;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .time-slot:hover {
+        background: rgba(78, 205, 196, 0.2);
+        border-color: rgba(78, 205, 196, 0.5);
+    }
+
+    .time-slot.active {
+        background: rgba(78, 205, 196, 0.3);
+        border-color: #4ecdc4;
+    }
+
+    .time-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .time-input-group input {
+        padding: 10px 15px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        color: #ffffff;
+        font-size: 16px;
+        text-align: center;
+        width: 80px;
+    }
+
+    .time-input-group input:focus {
+        outline: none;
+        border-color: #4ecdc4;
+    }
+
+    .time-input-group .separator {
+        color: #888888;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .time-search-btn {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        border: none;
+        border-radius: 10px;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .time-search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
+    }
+    
+    /* Galerie Grid */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .gallery-item {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .gallery-item-image {
+        position: relative;
+        aspect-ratio: 4/3;
+        overflow: hidden;
+    }
+    
+    .gallery-item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .gallery-item:hover .gallery-item-image img {
+        transform: scale(1.05);
+    }
+    
+    .gallery-item-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(transparent 60%, rgba(0, 0, 0, 0.8));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        align-items: flex-end;
+        padding: 15px;
+    }
+    
+    .gallery-item:hover .gallery-item-overlay {
+        opacity: 1;
+    }
+    
+    .overlay-stats {
+        display: flex;
+        gap: 15px;
+        color: #ffffff;
+        font-size: 14px;
+    }
+    
+    .gallery-item-info {
+        padding: 15px;
+    }
+    
+    .gallery-item-name {
+        font-weight: 600;
+        font-size: 16px;
+        color: #ffffff;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .gallery-item-time {
+        font-size: 13px;
+        color: #888888;
+    }
+    
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .pagination button {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 8px;
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .pagination button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .pagination button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+    
+    .pagination .page-info {
+        padding: 10px 20px;
+        color: #888888;
+    }
+    
+    /* Modal für Bilddetails */
+    .image-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1000;
+        padding: 30px;
+        overflow: auto;
+    }
+
+    .image-modal.active {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .modal-content {
+        max-width: 1200px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 30px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-image-container {
+        position: relative;
+    }
+
+    .modal-image {
+        width: 100%;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .modal-image:hover {
+        transform: scale(1.02);
+    }
+
+    .modal-close {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        font-size: 40px;
+        color: #ffffff;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+        z-index: 1001;
+    }
+
+    .modal-close:hover {
+        opacity: 1;
+    }
+
+    .modal-details {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 15px;
+        padding: 25px;
+    }
+
+    .modal-details h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #4ecdc4;
+        word-break: break-all;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        color: #888888;
+    }
+
+    .detail-value {
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .modal-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    /* Image Enlargement Modal */
+    .image-enlarge-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1100;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .image-enlarge-modal.active {
+        display: flex;
+    }
+
+    .enlarge-modal-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        animation: modalSlide 0.3s ease;
+    }
+
+    .enlarge-modal-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .enlarge-modal-close {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        font-size: 50px;
+        color: #ffffff;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+        z-index: 1101;
+    }
+
+    .enlarge-modal-close:hover {
+        opacity: 1;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    
+    .empty-state .icon {
+        font-size: 100px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .empty-state h3 {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: #ffffff;
+    }
+    
+    .empty-state p {
+        color: #888888;
+    }
+    
+    /* Numeric Keypad */
+    .numeric-keypad {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .keypad-row {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .keypad-btn {
+        flex: 1;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .keypad-btn:hover {
+        background: rgba(78, 205, 196, 0.2);
+        border-color: rgba(78, 205, 196, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .keypad-btn:active {
+        transform: translateY(0);
+        background: rgba(78, 205, 196, 0.3);
+    }
+
+    .keypad-btn.clear-btn {
+        background: rgba(255, 107, 107, 0.2);
+        border-color: rgba(255, 107, 107, 0.3);
+    }
+
+    .keypad-btn.clear-btn:hover {
+        background: rgba(255, 107, 107, 0.3);
+        border-color: rgba(255, 107, 107, 0.5);
+    }
+
+    .keypad-btn.search-btn {
+        background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        border-color: #4ecdc4;
+    }
+
+    .keypad-btn.search-btn:hover {
+        background: linear-gradient(135deg, #5ad9cc, #4ea08d);
+        box-shadow: 0 3px 10px rgba(78, 205, 196, 0.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .modal-content {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-details {
+            order: -1;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .gallery-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-bar {
+            flex-direction: column;
+        }
+
+        .search-input-wrapper {
+            width: 100%;
+        }
+
+        .numeric-keypad {
+            padding: 12px;
+        }
+
+        .keypad-btn {
+            padding: 10px 12px;
+            font-size: 16px;
+            min-width: 40px;
+        }
+
+        .gallery-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <!-- Header mit Suche -->
+    <div class="gallery-header">
+        <div class="gallery-title">
+            <h1>🖼️ Galerie</h1>
+            <div class="gallery-stats">
+                <span class="stat-badge" id="total-count">0 Bilder</span>
+                <span class="stat-badge" id="today-count">Heute: 0</span>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Suche nach Bildnummer..."
+                    readonly
+                >
+            </div>
+
+            <select class="filter-select" id="sort-select" onchange="loadGallery()">
+                <option value="newest">Neueste zuerst</option>
+                <option value="oldest">Älteste zuerst</option>
+                <option value="name">Nach Name</option>
+            </select>
+        </div>
+
+        <!-- Numeric Keypad -->
+        <div class="numeric-keypad">
+            <div class="keypad-row">
+                <button class="keypad-btn" onclick="addNumber(1)">1</button>
+                <button class="keypad-btn" onclick="addNumber(2)">2</button>
+                <button class="keypad-btn" onclick="addNumber(3)">3</button>
+            </div>
+            <div class="keypad-row">
+                <button class="keypad-btn" onclick="addNumber(4)">4</button>
+                <button class="keypad-btn" onclick="addNumber(5)">5</button>
+                <button class="keypad-btn" onclick="addNumber(6)">6</button>
+            </div>
+            <div class="keypad-row">
+                <button class="keypad-btn" onclick="addNumber(7)">7</button>
+                <button class="keypad-btn" onclick="addNumber(8)">8</button>
+                <button class="keypad-btn" onclick="addNumber(9)">9</button>
+            </div>
+            <div class="keypad-row">
+                <button class="keypad-btn clear-btn" onclick="clearSearch()">⌫</button>
+                <button class="keypad-btn" onclick="addNumber(0)">0</button>
+                <button class="keypad-btn search-btn" onclick="performSearch()">🔍</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zeit-Suche -->
+    <div class="time-search-section">
+        <h4>🕐 Nach Zeit filtern</h4>
+
+        <div class="time-slots">
+            <div class="time-slot" onclick="selectTimeSlot('10-11')">10-11</div>
+            <div class="time-slot" onclick="selectTimeSlot('11-12')">11-12</div>
+            <div class="time-slot" onclick="selectTimeSlot('12-13')">12-13</div>
+            <div class="time-slot" onclick="selectTimeSlot('13-14')">13-14</div>
+            <div class="time-slot" onclick="selectTimeSlot('14-15')">14-15</div>
+            <div class="time-slot" onclick="selectTimeSlot('15-16')">15-16</div>
+        </div>
+
+        <div class="time-input-group">
+            <input type="number" id="start-hour" placeholder="HH" min="0" max="23" step="1">
+            <span class="separator">:</span>
+            <input type="number" id="start-minute" placeholder="MM" min="0" max="59" step="1">
+            <span class="separator">-</span>
+            <input type="number" id="end-hour" placeholder="HH" min="0" max="23" step="1">
+            <span class="separator">:</span>
+            <input type="number" id="end-minute" placeholder="MM" min="0" max="59" step="1">
+            <button class="time-search-btn" onclick="searchByTime()">🔍 Suchen</button>
+            <button class="time-search-btn" onclick="clearTimeFilter()" style="background: rgba(255, 107, 107, 0.8);">❌ Löschen</button>
+        </div>
+    </div>
+    
+    <!-- Galerie Grid -->
+    <div class="gallery-grid" id="gallery-grid">
+        <div class="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination" id="pagination" style="display: none;">
+        <button onclick="prevPage()" id="prev-btn">← Zurück</button>
+        <span class="page-info" id="page-info">Seite 1 von 1</span>
+        <button onclick="nextPage()" id="next-btn">Weiter →</button>
+    </div>
+    
+</div>
+
+<!-- Bild-Modal -->
+<div class="image-modal" id="image-modal" onclick="closeModalOnBackground(event)">
+    <span class="modal-close" onclick="closeModal()">×</span>
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-image-container">
+            <img class="modal-image" id="modal-image" src="" alt="" onclick="openEnlargeModal()">
+        </div>
+        <div class="modal-details">
+            <h2 id="modal-filename">Bildname.jpg</h2>
+
+            <div class="detail-row">
+                <span class="detail-label">📅 Aufnahmezeit</span>
+                <span class="detail-value" id="modal-time">-</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">👤 Gesichter</span>
+                <span class="detail-value" id="modal-faces">0</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">🚶 Personen</span>
+                <span class="detail-value" id="modal-persons">0</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">📐 Größe</span>
+                <span class="detail-value" id="modal-size">-</span>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="printImage()">
+                    🖨️ Drucken
+                </button>
+                <button class="btn btn-secondary" onclick="downloadImage()">
+                    ⬇️ Herunterladen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Enlargement Modal -->
+<div class="image-enlarge-modal" id="image-enlarge-modal" onclick="closeEnlargeModalOnBackground(event)">
+    <span class="enlarge-modal-close" onclick="closeEnlargeModal()">×</span>
+    <div class="enlarge-modal-content">
+        <img class="enlarge-modal-image" id="enlarge-modal-image" src="" alt="">
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ========================================
+    // VARIABLEN
+    // ========================================
+    
+    let galleryImages = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let currentImageId = null;
+    
+    const ITEMS_PER_PAGE = 20;
+    
+    // ========================================
+    // GALERIE LADEN
+    // ========================================
+    
+    async function loadGallery() {
+        const grid = document.getElementById('gallery-grid');
+        grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+        const search = document.getElementById('search-input').value;
+        const sort = document.getElementById('sort-select').value;
+        const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+        try {
+            let url = `/gallery/api/images?limit=${ITEMS_PER_PAGE}&offset=${offset}&sort=${sort}`;
+
+            if (search) {
+                url += `&search=${encodeURIComponent(search)}`;
+            }
+
+            if (timeFilter) {
+                url += `&start_hour=${timeFilter.startHour}&start_minute=${timeFilter.startMinute}`;
+                url += `&end_hour=${timeFilter.endHour}&end_minute=${timeFilter.endMinute}`;
+            }
+
+            const data = await api(url);
+
+            galleryImages = data.images || [];
+            totalPages = Math.ceil(data.total / ITEMS_PER_PAGE) || 1;
+
+            renderGallery();
+            updatePagination();
+            updateStats(data.total);
+
+        } catch (error) {
+            console.error('Fehler beim Laden:', error);
+            showEmptyState('Fehler beim Laden der Bilder');
+        }
+    }
+    
+    function renderGallery() {
+        const grid = document.getElementById('gallery-grid');
+        
+        if (galleryImages.length === 0) {
+            showEmptyState('Keine Bilder gefunden');
+            return;
+        }
+        
+        grid.innerHTML = galleryImages.map(img => `
+            <div class="gallery-item" onclick="openModal('${img.id}')">
+                <div class="gallery-item-image">
+                    <img
+                        src="/gallery/thumbnail/${img.id}?size=400&original=true"
+                        alt="${img.filename}"
+                        loading="lazy"
+                    >
+                    <div class="gallery-item-overlay">
+                        <div class="overlay-stats">
+                            <span>👤 ${img.face_count}</span>
+                            <span>🚶 ${img.person_count}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-item-info">
+                    <div class="gallery-item-name">${img.filename}</div>
+                    <div class="gallery-item-time">${img.time_formatted || formatTime(img.timestamp)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function showEmptyState(message) {
+        const grid = document.getElementById('gallery-grid');
+        grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="icon">📷</div>
+                <h3>${message}</h3>
+                <p>Versuche eine andere Suche oder warte auf neue Bilder</p>
+            </div>
+        `;
+        
+        document.getElementById('pagination').style.display = 'none';
+    }
+    
+    // ========================================
+    // PAGINATION
+    // ========================================
+    
+    function updatePagination() {
+        const pagination = document.getElementById('pagination');
+        const pageInfo = document.getElementById('page-info');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+        
+        pagination.style.display = 'flex';
+        pageInfo.textContent = `Seite ${currentPage} von ${totalPages}`;
+        
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+    }
+    
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            loadGallery();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    function nextPage() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            loadGallery();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    // ========================================
+    // SUCHE
+    // ========================================
+
+    let searchTimeout = null;
+    let timeFilter = null;
+
+    function addNumber(num) {
+        const input = document.getElementById('search-input');
+        const currentValue = input.value;
+        input.value = currentValue + num.toString();
+    }
+
+    function clearSearch() {
+        document.getElementById('search-input').value = '';
+        currentPage = 1;
+        loadGallery();
+    }
+
+    function performSearch() {
+        clearTimeout(searchTimeout);
+        currentPage = 1;
+        loadGallery();
+        showToast('Suche ausgeführt', 'info');
+    }
+
+    function selectTimeSlot(slot) {
+        // Remove active class from all slots
+        document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active'));
+
+        // Add active class to selected slot
+        event.target.classList.add('active');
+
+        // Parse time slot
+        const [startHour, endHour] = slot.split('-').map(Number);
+        timeFilter = {
+            startHour: startHour,
+            startMinute: 0,
+            endHour: endHour,
+            endMinute: 0
+        };
+
+        // Update input fields
+        document.getElementById('start-hour').value = startHour;
+        document.getElementById('start-minute').value = 0;
+        document.getElementById('end-hour').value = endHour;
+        document.getElementById('end-minute').value = 0;
+
+        // Apply filter
+        currentPage = 1;
+        loadGallery();
+    }
+
+    function searchByTime() {
+        const startHour = parseInt(document.getElementById('start-hour').value);
+        const startMinute = parseInt(document.getElementById('start-minute').value) || 0;
+        const endHour = parseInt(document.getElementById('end-hour').value);
+        const endMinute = parseInt(document.getElementById('end-minute').value) || 0;
+
+        // Validate input
+        if (isNaN(startHour) || isNaN(endHour)) {
+            showToast('Bitte gültige Stunden eingeben', 'error');
+            return;
+        }
+
+        // Remove active class from slots
+        document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active'));
+
+        timeFilter = {
+            startHour: startHour,
+            startMinute: startMinute,
+            endHour: endHour,
+            endMinute: endMinute
+        };
+
+        currentPage = 1;
+        loadGallery();
+        showToast('Zeitfilter angewendet', 'success');
+    }
+
+    function clearTimeFilter() {
+        timeFilter = null;
+
+        // Clear input fields
+        document.getElementById('start-hour').value = '';
+        document.getElementById('start-minute').value = '';
+        document.getElementById('end-hour').value = '';
+        document.getElementById('end-minute').value = '';
+
+        // Remove active class from slots
+        document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active'));
+
+        currentPage = 1;
+        loadGallery();
+        showToast('Zeitfilter entfernt', 'info');
+    }
+    
+    // ========================================
+    // STATISTIKEN
+    // ========================================
+    
+    async function updateStats(total) {
+        document.getElementById('total-count').textContent = `${total || 0} Bilder`;
+        
+        try {
+            const stats = await api('/gallery/api/stats');
+            document.getElementById('today-count').textContent = 
+                `Heute: ${stats.stats.images_today || 0}`;
+        } catch (e) {
+            // Ignorieren
+        }
+    }
+    
+    // ========================================
+    // MODAL
+    // ========================================
+    
+    async function openModal(imageId) {
+        currentImageId = imageId;
+        
+        const modal = document.getElementById('image-modal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        try {
+            const data = await api(`/gallery/api/image/${imageId}`);
+            const img = data.image;
+            
+            document.getElementById('modal-image').src = `/gallery/image/${imageId}?original=true`;
+            document.getElementById('modal-filename').textContent = img.filename;
+            document.getElementById('modal-time').textContent = 
+                img.time_formatted || formatTime(img.timestamp);
+            document.getElementById('modal-faces').textContent = img.face_count || 0;
+            document.getElementById('modal-persons').textContent = img.person_count || 0;
+            document.getElementById('modal-size').textContent = 
+                img.width && img.height ? `${img.width} × ${img.height}` : '-';
+            
+        } catch (error) {
+            console.error('Fehler beim Laden der Details:', error);
+            showToast('Fehler beim Laden', 'error');
+        }
+    }
+    
+    function closeModal() {
+        const modal = document.getElementById('image-modal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        currentImageId = null;
+    }
+    
+    function closeModalOnBackground(event) {
+        if (event.target.id === 'image-modal') {
+            closeModal();
+        }
+    }
+    
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+        if (!currentImageId) return;
+        
+        if (e.key === 'Escape') {
+            closeModal();
+        } else if (e.key === 'ArrowLeft') {
+            navigateImage(-1);
+        } else if (e.key === 'ArrowRight') {
+            navigateImage(1);
+        }
+    });
+    
+    function navigateImage(direction) {
+        const currentIndex = galleryImages.findIndex(img => img.id === currentImageId);
+        const newIndex = currentIndex + direction;
+        
+        if (newIndex >= 0 && newIndex < galleryImages.length) {
+            openModal(galleryImages[newIndex].id);
+        }
+    }
+    
+    // ========================================
+    // IMAGE ENLARGEMENT MODAL
+    // ========================================
+
+    function openEnlargeModal() {
+        if (!currentImageId) return;
+
+        document.getElementById('enlarge-modal-image').src = `/gallery/image/${currentImageId}?original=true`;
+
+        const modal = document.getElementById('image-enlarge-modal');
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEnlargeModal() {
+        const modal = document.getElementById('image-enlarge-modal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function closeEnlargeModalOnBackground(event) {
+        if (event.target.id === 'image-enlarge-modal') {
+            closeEnlargeModal();
+        }
+    }
+
+    // ========================================
+    // AKTIONEN
+    // ========================================
+
+    function downloadImage() {
+        if (!currentImageId) return;
+
+        const link = document.createElement('a');
+        link.href = `/gallery/image/${currentImageId}?original=true`;
+        link.download = document.getElementById('modal-filename').textContent;
+        link.click();
+
+        showToast('Download gestartet', 'success');
+    }
+
+    async function printImage() {
+        if (!currentImageId) return;
+
+        // Zur Druckseite mit Bildauswahl navigieren
+        window.location.href = `/customer/search?print=${currentImageId}`;
+    }
+    
+    // ========================================
+    // URL PARAMETER HANDLING
+    // ========================================
+
+    function checkUrlParameters() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const imageId = urlParams.get('image');
+
+        if (imageId) {
+            // Warte bis Galerie geladen ist, dann öffne das Bild
+            setTimeout(() => {
+                openModal(imageId);
+                // Entferne Parameter aus URL ohne Neuladen
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }, 500);
+        }
+    }
+
+    // ========================================
+    // INITIALISIERUNG
+    // ========================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadGallery();
+        checkUrlParameters();
+    });
+</script>
+{% endblock %}
